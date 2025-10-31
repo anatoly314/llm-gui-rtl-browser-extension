@@ -15,6 +15,42 @@ import { Toast } from '@extension/ui';
 import { useState, useEffect } from 'react';
 import type { PositionType } from '@extension/storage';
 
+// Toggle Switch Component
+const ToggleSwitch = ({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <span style={{ fontSize: '14px', color: '#374151', fontWeight: '500' }}>{label}</span>
+    <button
+      onClick={onChange}
+      style={{
+        position: 'relative',
+        width: '52px',
+        height: '28px',
+        backgroundColor: checked ? '#10b981' : '#d1d5db',
+        borderRadius: '14px',
+        border: 'none',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        padding: 0,
+      }}
+      aria-checked={checked}
+      role="switch">
+      <div
+        style={{
+          position: 'absolute',
+          top: '2px',
+          left: checked ? '26px' : '2px',
+          width: '24px',
+          height: '24px',
+          backgroundColor: 'white',
+          borderRadius: '50%',
+          transition: 'left 0.2s',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+        }}
+      />
+    </button>
+  </div>
+);
+
 export default function App() {
   const [isHovered, setIsHovered] = useState(false);
   const [isRTL, setIsRTL] = useState(false);
@@ -419,33 +455,12 @@ export default function App() {
                   fontSize: '14px',
                   fontWeight: '600',
                   color: '#374151',
-                  marginBottom: '12px',
+                  marginBottom: '16px',
                 }}>
-                RTL Direction
+                Side Panel Direction
               </div>
 
-              <button
-                onClick={handleToggleRTL}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: 'white',
-                  backgroundColor: isRTL ? '#10b981' : '#6b7280',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = isRTL ? '#059669' : '#4b5563';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor = isRTL ? '#10b981' : '#6b7280';
-                }}>
-                {isRTL ? 'RTL Enabled ✓' : 'RTL Disabled'}
-              </button>
+              <ToggleSwitch checked={isRTL} onChange={handleToggleRTL} label="Enable RTL" />
 
               <p
                 style={{
@@ -465,33 +480,12 @@ export default function App() {
                   fontSize: '14px',
                   fontWeight: '600',
                   color: '#374151',
-                  marginBottom: '12px',
+                  marginBottom: '16px',
                 }}>
                 Chat Input Direction
               </div>
 
-              <button
-                onClick={handleToggleChatInputRTL}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: 'white',
-                  backgroundColor: isChatInputRTL ? '#10b981' : '#6b7280',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = isChatInputRTL ? '#059669' : '#4b5563';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor = isChatInputRTL ? '#10b981' : '#6b7280';
-                }}>
-                {isChatInputRTL ? 'RTL Enabled ✓' : 'RTL Disabled'}
-              </button>
+              <ToggleSwitch checked={isChatInputRTL} onChange={handleToggleChatInputRTL} label="Enable RTL" />
 
               <p
                 style={{
@@ -511,33 +505,12 @@ export default function App() {
                   fontSize: '14px',
                   fontWeight: '600',
                   color: '#374151',
-                  marginBottom: '12px',
+                  marginBottom: '16px',
                 }}>
                 Main Content Direction
               </div>
 
-              <button
-                onClick={handleToggleMainContentRTL}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: 'white',
-                  backgroundColor: isMainContentRTL ? '#10b981' : '#6b7280',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = isMainContentRTL ? '#059669' : '#4b5563';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor = isMainContentRTL ? '#10b981' : '#6b7280';
-                }}>
-                {isMainContentRTL ? 'RTL Enabled ✓' : 'RTL Disabled'}
-              </button>
+              <ToggleSwitch checked={isMainContentRTL} onChange={handleToggleMainContentRTL} label="Enable RTL" />
 
               <p
                 style={{
