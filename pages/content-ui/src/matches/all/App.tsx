@@ -1,4 +1,11 @@
-import { useStorage, toggleRTL, initRTLManager, getCurrentRTLState } from '@extension/shared';
+import {
+  useStorage,
+  toggleRTL,
+  toggleChatInputRTL,
+  initRTLManager,
+  getCurrentRTLState,
+  getCurrentChatInputRTLState,
+} from '@extension/shared';
 import { rtlPositionStorage } from '@extension/storage';
 import { useState, useEffect } from 'react';
 import type { PositionType } from '@extension/storage';
@@ -6,6 +13,7 @@ import type { PositionType } from '@extension/storage';
 export default function App() {
   const [isHovered, setIsHovered] = useState(false);
   const [isRTL, setIsRTL] = useState(false);
+  const [isChatInputRTL, setIsChatInputRTL] = useState(false);
   const storageData = useStorage(rtlPositionStorage);
   const position = storageData?.position || 'top';
 
@@ -13,8 +21,9 @@ export default function App() {
   useEffect(() => {
     const cleanup = initRTLManager();
 
-    // Load initial RTL state
+    // Load initial RTL states
     getCurrentRTLState().then(state => setIsRTL(state));
+    getCurrentChatInputRTLState().then(state => setIsChatInputRTL(state));
 
     return cleanup;
   }, []);
@@ -22,6 +31,11 @@ export default function App() {
   const handleToggleRTL = async () => {
     const newState = await toggleRTL();
     setIsRTL(newState);
+  };
+
+  const handleToggleChatInputRTL = async () => {
+    const newState = await toggleChatInputRTL();
+    setIsChatInputRTL(newState);
   };
 
   const getContainerStyle = () => {
@@ -120,11 +134,11 @@ export default function App() {
       case 'top':
         return {
           ...baseStyle,
-          top: isHovered ? '8px' : '-450px',
+          top: isHovered ? '8px' : '-550px',
           left: '50%',
           transform: 'translateX(-50%)',
           width: '500px',
-          height: '400px',
+          height: '500px',
           borderRadius: '0 0 12px 12px',
         };
       case 'right':
@@ -134,17 +148,17 @@ export default function App() {
           top: '50%',
           transform: 'translateY(-50%)',
           width: '500px',
-          height: '400px',
+          height: '500px',
           borderRadius: '12px 0 0 12px',
         };
       case 'bottom':
         return {
           ...baseStyle,
-          bottom: isHovered ? '8px' : '-450px',
+          bottom: isHovered ? '8px' : '-550px',
           left: '50%',
           transform: 'translateX(-50%)',
           width: '500px',
-          height: '400px',
+          height: '500px',
           borderRadius: '12px 12px 0 0',
         };
       case 'left':
@@ -154,7 +168,7 @@ export default function App() {
           top: '50%',
           transform: 'translateY(-50%)',
           width: '500px',
-          height: '400px',
+          height: '500px',
           borderRadius: '0 12px 12px 0',
         };
       default:
@@ -366,7 +380,53 @@ export default function App() {
               fontSize: '12px',
               color: '#6b7280',
             }}>
-            {isRTL ? 'Chat is displayed right-to-left' : 'Chat is displayed left-to-right'}
+            {isRTL ? 'Side panel is displayed right-to-left' : 'Side panel is displayed left-to-right'}
+          </p>
+        </div>
+
+        {/* Chat Input RTL Toggle */}
+        <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+          <div
+            style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '12px',
+            }}>
+            Chat Input Direction
+          </div>
+
+          <button
+            onClick={handleToggleChatInputRTL}
+            style={{
+              padding: '10px 20px',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: 'white',
+              backgroundColor: isChatInputRTL ? '#10b981' : '#6b7280',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.backgroundColor = isChatInputRTL ? '#059669' : '#4b5563';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.backgroundColor = isChatInputRTL ? '#10b981' : '#6b7280';
+            }}>
+            {isChatInputRTL ? 'RTL Enabled ✓' : 'RTL Disabled'}
+          </button>
+
+          <p
+            style={{
+              marginTop: '8px',
+              fontSize: '12px',
+              color: '#6b7280',
+            }}>
+            {isChatInputRTL ? 'Chat input is displayed right-to-left' : 'Chat input is displayed left-to-right'}
           </p>
         </div>
       </div>

@@ -16,6 +16,11 @@ const findSidePanelContent = (): HTMLElement | null => {
 };
 
 /**
+ * Finds the chat input element
+ */
+const findChatInput = (): HTMLElement | null => document.querySelector('[data-testid="chat-input"]');
+
+/**
  * Applies or removes RTL direction to the side panel content
  */
 export const applyRTL = (enable: boolean): void => {
@@ -27,15 +32,34 @@ export const applyRTL = (enable: boolean): void => {
 
   if (enable) {
     sidePanelContent.style.direction = 'rtl';
-    console.log('[RTL Manager] RTL applied');
+    console.log('[RTL Manager] Side panel RTL applied');
   } else {
     sidePanelContent.style.direction = 'ltr';
-    console.log('[RTL Manager] RTL removed');
+    console.log('[RTL Manager] Side panel RTL removed');
   }
 };
 
 /**
- * Gets the current RTL state from storage for the current chat
+ * Applies or removes RTL direction to the chat input
+ */
+export const applyChatInputRTL = (enable: boolean): void => {
+  const chatInput = findChatInput();
+  if (!chatInput) {
+    console.warn('[RTL Manager] Chat input not found');
+    return;
+  }
+
+  if (enable) {
+    chatInput.style.direction = 'rtl';
+    console.log('[RTL Manager] Chat input RTL applied');
+  } else {
+    chatInput.style.direction = 'ltr';
+    console.log('[RTL Manager] Chat input RTL removed');
+  }
+};
+
+/**
+ * Gets the current side panel RTL state from storage for the current chat
  */
 export const getCurrentRTLState = async (): Promise<boolean> => {
   const chatId = getCurrentChatId();
@@ -46,13 +70,30 @@ export const getCurrentRTLState = async (): Promise<boolean> => {
     const settings = await chatRTLStorage.getChatSettings(chatId);
     return settings.isRTL;
   } catch (error) {
-    console.error('[RTL Manager] Error getting RTL state:', error);
+    console.error('[RTL Manager] Error getting side panel RTL state:', error);
     return false;
   }
 };
 
 /**
- * Toggles RTL for the current chat and saves to storage
+ * Gets the current chat input RTL state from storage for the current chat
+ */
+export const getCurrentChatInputRTLState = async (): Promise<boolean> => {
+  const chatId = getCurrentChatId();
+  if (!chatId) return false;
+
+  try {
+    const { chatRTLStorage } = await import('@extension/storage');
+    const settings = await chatRTLStorage.getChatSettings(chatId);
+    return settings.isChatInputRTL;
+  } catch (error) {
+    console.error('[RTL Manager] Error getting chat input RTL state:', error);
+    return false;
+  }
+};
+
+/**
+ * Toggles side panel RTL for the current chat and saves to storage
  */
 export const toggleRTL = async (): Promise<boolean> => {
   const chatId = getCurrentChatId();
@@ -75,10 +116,41 @@ export const toggleRTL = async (): Promise<boolean> => {
     // Apply immediately
     applyRTL(newRTLState);
 
-    console.log(`[RTL Manager] Toggled RTL for chat ${chatId}: ${newRTLState}`);
+    console.log(`[RTL Manager] Toggled side panel RTL for chat ${chatId}: ${newRTLState}`);
     return newRTLState;
   } catch (error) {
-    console.error('[RTL Manager] Error toggling RTL:', error);
+    console.error('[RTL Manager] Error toggling side panel RTL:', error);
+    return false;
+  }
+};
+
+/**
+ * Toggles chat input RTL for the current chat and saves to storage
+ */
+export const toggleChatInputRTL = async (): Promise<boolean> => {
+  const chatId = getCurrentChatId();
+  if (!chatId) {
+    console.warn('[RTL Manager] No chat ID found');
+    return false;
+  }
+
+  try {
+    const { chatRTLStorage } = await import('@extension/storage');
+    const currentSettings = await chatRTLStorage.getChatSettings(chatId);
+    const newRTLState = !currentSettings.isChatInputRTL;
+
+    // Save to storage
+    await chatRTLStorage.setChatSettings(chatId, {
+      isChatInputRTL: newRTLState,
+    });
+
+    // Apply immediately
+    applyChatInputRTL(newRTLState);
+
+    console.log(`[RTL Manager] Toggled chat input RTL for chat ${chatId}: ${newRTLState}`);
+    return newRTLState;
+  } catch (error) {
+    console.error('[RTL Manager] Error toggling chat input RTL:', error);
     return false;
   }
 };
@@ -88,10 +160,11 @@ export const toggleRTL = async (): Promise<boolean> => {
  */
 export const initRTLManager = (): (() => void) => {
   let currentChatId: string | null = null;
-  let lastElement: HTMLElement | null = null;
+  let lastSidePanelElement: HTMLElement | null = null;
+  let lastChatInputElement: HTMLElement | null = null;
   let lastUrl = location.href;
 
-  // Apply RTL state for current chat
+  // Apply RTL state for current chat (both side panel and chat input)
   const applyCurrentChatRTL = async () => {
     const chatId = getCurrentChatId();
     if (!chatId) return;
@@ -102,22 +175,41 @@ export const initRTLManager = (): (() => void) => {
       currentChatId = chatId;
     }
 
+    // Handle side panel RTL
     const sidePanelContent = findSidePanelContent();
-    if (!sidePanelContent) return;
+    if (sidePanelContent) {
+      const elementChanged = sidePanelContent !== lastSidePanelElement;
+      const isRTL = await getCurrentRTLState();
+      const needsReapply = elementChanged || sidePanelContent.style.direction !== (isRTL ? 'rtl' : 'ltr');
 
-    // Check if element is new or doesn't have correct direction
-    const elementChanged = sidePanelContent !== lastElement;
-    const isRTL = await getCurrentRTLState();
-    const needsReapply = elementChanged || sidePanelContent.style.direction !== (isRTL ? 'rtl' : 'ltr');
+      if (needsReapply) {
+        lastSidePanelElement = sidePanelContent;
+        applyRTL(isRTL);
 
-    if (needsReapply) {
-      lastElement = sidePanelContent;
-      applyRTL(isRTL);
+        if (chatChanged) {
+          console.log(`[RTL Manager] Applied side panel state for chat ${chatId}: RTL=${isRTL}`);
+        } else if (elementChanged) {
+          console.log(`[RTL Manager] Reapplied side panel RTL after DOM change: RTL=${isRTL}`);
+        }
+      }
+    }
 
-      if (chatChanged) {
-        console.log(`[RTL Manager] Applied state for chat ${chatId}: RTL=${isRTL}`);
-      } else if (elementChanged) {
-        console.log(`[RTL Manager] Reapplied RTL after DOM change: RTL=${isRTL}`);
+    // Handle chat input RTL
+    const chatInput = findChatInput();
+    if (chatInput) {
+      const elementChanged = chatInput !== lastChatInputElement;
+      const isChatInputRTL = await getCurrentChatInputRTLState();
+      const needsReapply = elementChanged || chatInput.style.direction !== (isChatInputRTL ? 'rtl' : 'ltr');
+
+      if (needsReapply) {
+        lastChatInputElement = chatInput;
+        applyChatInputRTL(isChatInputRTL);
+
+        if (chatChanged) {
+          console.log(`[RTL Manager] Applied chat input state for chat ${chatId}: RTL=${isChatInputRTL}`);
+        } else if (elementChanged) {
+          console.log(`[RTL Manager] Reapplied chat input RTL after DOM change: RTL=${isChatInputRTL}`);
+        }
       }
     }
   };
@@ -132,7 +224,8 @@ export const initRTLManager = (): (() => void) => {
     // Always check if RTL needs to be reapplied (handles both URL changes and DOM recreation)
     if (currentUrl !== lastUrl) {
       lastUrl = currentUrl;
-      lastElement = null; // Reset element tracking on navigation
+      lastSidePanelElement = null; // Reset element tracking on navigation
+      lastChatInputElement = null;
     }
 
     applyCurrentChatRTL();
