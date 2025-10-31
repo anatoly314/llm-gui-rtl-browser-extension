@@ -18,15 +18,15 @@ import type { PositionType } from '@extension/storage';
 // Toggle Switch Component
 const ToggleSwitch = ({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-    <span style={{ fontSize: '14px', color: '#374151', fontWeight: '500' }}>{label}</span>
+    <span style={{ fontSize: '13px', color: '#374151', fontWeight: '500' }}>{label}</span>
     <button
       onClick={onChange}
       style={{
         position: 'relative',
-        width: '52px',
-        height: '28px',
+        width: '44px',
+        height: '24px',
         backgroundColor: checked ? '#10b981' : '#d1d5db',
-        borderRadius: '14px',
+        borderRadius: '12px',
         border: 'none',
         cursor: 'pointer',
         transition: 'background-color 0.2s',
@@ -38,9 +38,9 @@ const ToggleSwitch = ({ checked, onChange, label }: { checked: boolean; onChange
         style={{
           position: 'absolute',
           top: '2px',
-          left: checked ? '26px' : '2px',
-          width: '24px',
-          height: '24px',
+          left: checked ? '22px' : '2px',
+          width: '20px',
+          height: '20px',
           backgroundColor: 'white',
           borderRadius: '50%',
           transition: 'left 0.2s',
@@ -447,31 +447,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* RTL Toggle */}
-            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
-              <div
-                style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '16px',
-                }}>
-                Side Panel Direction
-              </div>
-
-              <ToggleSwitch checked={isRTL} onChange={handleToggleRTL} label="Enable RTL" />
-
-              <p
-                style={{
-                  marginTop: '8px',
-                  fontSize: '12px',
-                  color: '#6b7280',
-                }}>
-                {isRTL ? 'Side panel is displayed right-to-left' : 'Side panel is displayed left-to-right'}
-              </p>
-            </div>
-
             {/* Chat Input RTL Toggle */}
             <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
               <div
@@ -521,6 +496,31 @@ export default function App() {
                 {isMainContentRTL
                   ? 'Main content is displayed right-to-left'
                   : 'Main content is displayed left-to-right'}
+              </p>
+            </div>
+
+            {/* Side Panel RTL Toggle */}
+            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+              <div
+                style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#374151',
+                  marginBottom: '16px',
+                }}>
+                Side Panel Direction
+              </div>
+
+              <ToggleSwitch checked={isRTL} onChange={handleToggleRTL} label="Enable RTL" />
+
+              <p
+                style={{
+                  marginTop: '8px',
+                  fontSize: '12px',
+                  color: '#6b7280',
+                }}>
+                {isRTL ? 'Side panel is displayed right-to-left' : 'Side panel is displayed left-to-right'}
               </p>
             </div>
           </div>
