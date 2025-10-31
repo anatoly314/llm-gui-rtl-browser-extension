@@ -7,6 +7,7 @@ type DirectionType = 'ltr' | 'rtl';
 interface ChatRTLSettings {
   isRTL: boolean;
   isChatInputRTL: boolean;
+  isMainContentRTL: boolean;
   direction: DirectionType;
   textAlign: TextAlignType;
   // Add more properties as needed:
@@ -28,6 +29,7 @@ type ChatRTLStorageType = BaseStorageType<ChatRTLStorageState> & {
 const DEFAULT_CHAT_SETTINGS: ChatRTLSettings = {
   isRTL: false,
   isChatInputRTL: false,
+  isMainContentRTL: false,
   direction: 'ltr',
   textAlign: 'left',
 };

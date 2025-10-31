@@ -21,6 +21,41 @@ const findSidePanelContent = (): HTMLElement | null => {
 const findChatInput = (): HTMLElement | null => document.querySelector('[data-testid="chat-input"]');
 
 /**
+ * Finds the main content element by traversing up from chat input to sticky element,
+ * then selecting its previous sibling (the first child with flex-1 class)
+ */
+const findMainContent = (): HTMLElement | null => {
+  const chatInput = document.querySelector('[data-testid="chat-input"]');
+  if (!chatInput) return null;
+
+  // Traverse up to find element with sticky class
+  let current: Element | null = chatInput.parentElement;
+  let depth = 0;
+
+  while (current && depth < 20) {
+    depth++;
+    const classes = Array.from(current.classList);
+
+    if (classes.some(c => c.includes('sticky'))) {
+      // Found sticky element (second child), get its previous sibling (first child - main content)
+      const previousSibling = current.previousElementSibling;
+      if (previousSibling) {
+        console.log('[RTL Manager] Found main content element:', previousSibling);
+        return previousSibling as HTMLElement;
+      }
+
+      console.warn('[RTL Manager] Sticky element found but no previous sibling');
+      return null;
+    }
+
+    current = current.parentElement;
+  }
+
+  console.warn('[RTL Manager] No element with sticky class found');
+  return null;
+};
+
+/**
  * Applies or removes RTL direction to the side panel content
  */
 export const applyRTL = (enable: boolean): void => {
@@ -59,6 +94,25 @@ export const applyChatInputRTL = (enable: boolean): void => {
 };
 
 /**
+ * Applies or removes RTL direction to the main content
+ */
+export const applyMainContentRTL = (enable: boolean): void => {
+  const mainContent = findMainContent();
+  if (!mainContent) {
+    console.warn('[RTL Manager] Main content not found');
+    return;
+  }
+
+  if (enable) {
+    mainContent.style.direction = 'rtl';
+    console.log('[RTL Manager] Main content RTL applied');
+  } else {
+    mainContent.style.direction = 'ltr';
+    console.log('[RTL Manager] Main content RTL removed');
+  }
+};
+
+/**
  * Gets the current side panel RTL state from storage for the current chat
  */
 export const getCurrentRTLState = async (): Promise<boolean> => {
@@ -88,6 +142,23 @@ export const getCurrentChatInputRTLState = async (): Promise<boolean> => {
     return settings.isChatInputRTL;
   } catch (error) {
     console.error('[RTL Manager] Error getting chat input RTL state:', error);
+    return false;
+  }
+};
+
+/**
+ * Gets the current main content RTL state from storage for the current chat
+ */
+export const getCurrentMainContentRTLState = async (): Promise<boolean> => {
+  const chatId = getCurrentChatId();
+  if (!chatId) return false;
+
+  try {
+    const { chatRTLStorage } = await import('@extension/storage');
+    const settings = await chatRTLStorage.getChatSettings(chatId);
+    return settings.isMainContentRTL;
+  } catch (error) {
+    console.error('[RTL Manager] Error getting main content RTL state:', error);
     return false;
   }
 };
@@ -156,15 +227,47 @@ export const toggleChatInputRTL = async (): Promise<boolean> => {
 };
 
 /**
+ * Toggles main content RTL for the current chat and saves to storage
+ */
+export const toggleMainContentRTL = async (): Promise<boolean> => {
+  const chatId = getCurrentChatId();
+  if (!chatId) {
+    console.warn('[RTL Manager] No chat ID found');
+    return false;
+  }
+
+  try {
+    const { chatRTLStorage } = await import('@extension/storage');
+    const currentSettings = await chatRTLStorage.getChatSettings(chatId);
+    const newRTLState = !currentSettings.isMainContentRTL;
+
+    // Save to storage
+    await chatRTLStorage.setChatSettings(chatId, {
+      isMainContentRTL: newRTLState,
+    });
+
+    // Apply immediately
+    applyMainContentRTL(newRTLState);
+
+    console.log(`[RTL Manager] Toggled main content RTL for chat ${chatId}: ${newRTLState}`);
+    return newRTLState;
+  } catch (error) {
+    console.error('[RTL Manager] Error toggling main content RTL:', error);
+    return false;
+  }
+};
+
+/**
  * Initializes RTL manager - applies saved state and watches for URL changes and DOM changes
  */
 export const initRTLManager = (): (() => void) => {
   let currentChatId: string | null = null;
   let lastSidePanelElement: HTMLElement | null = null;
   let lastChatInputElement: HTMLElement | null = null;
+  let lastMainContentElement: HTMLElement | null = null;
   let lastUrl = location.href;
 
-  // Apply RTL state for current chat (both side panel and chat input)
+  // Apply RTL state for current chat (side panel, chat input, and main content)
   const applyCurrentChatRTL = async () => {
     const chatId = getCurrentChatId();
     if (!chatId) return;
@@ -212,6 +315,25 @@ export const initRTLManager = (): (() => void) => {
         }
       }
     }
+
+    // Handle main content RTL
+    const mainContent = findMainContent();
+    if (mainContent) {
+      const elementChanged = mainContent !== lastMainContentElement;
+      const isMainContentRTL = await getCurrentMainContentRTLState();
+      const needsReapply = elementChanged || mainContent.style.direction !== (isMainContentRTL ? 'rtl' : 'ltr');
+
+      if (needsReapply) {
+        lastMainContentElement = mainContent;
+        applyMainContentRTL(isMainContentRTL);
+
+        if (chatChanged) {
+          console.log(`[RTL Manager] Applied main content state for chat ${chatId}: RTL=${isMainContentRTL}`);
+        } else if (elementChanged) {
+          console.log(`[RTL Manager] Reapplied main content RTL after DOM change: RTL=${isMainContentRTL}`);
+        }
+      }
+    }
   };
 
   // Initial apply
@@ -226,6 +348,7 @@ export const initRTLManager = (): (() => void) => {
       lastUrl = currentUrl;
       lastSidePanelElement = null; // Reset element tracking on navigation
       lastChatInputElement = null;
+      lastMainContentElement = null;
     }
 
     applyCurrentChatRTL();
