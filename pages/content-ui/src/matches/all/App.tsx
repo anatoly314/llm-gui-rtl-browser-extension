@@ -18,15 +18,15 @@ import type { PositionType } from '@extension/storage';
 // Toggle Switch Component
 const ToggleSwitch = ({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-    <span style={{ fontSize: '13px', color: '#374151', fontWeight: '500' }}>{label}</span>
+    <span style={{ fontSize: '12px', color: '#374151', fontWeight: '500' }}>{label}</span>
     <button
       onClick={onChange}
       style={{
         position: 'relative',
-        width: '44px',
-        height: '24px',
+        width: '36px',
+        height: '18px',
         backgroundColor: checked ? '#10b981' : '#d1d5db',
-        borderRadius: '12px',
+        borderRadius: '9px',
         border: 'none',
         cursor: 'pointer',
         transition: 'background-color 0.2s',
@@ -37,14 +37,14 @@ const ToggleSwitch = ({ checked, onChange, label }: { checked: boolean; onChange
       <div
         style={{
           position: 'absolute',
-          top: '2px',
-          left: checked ? '22px' : '2px',
-          width: '20px',
-          height: '20px',
+          top: '1px',
+          left: checked ? '19px' : '1px',
+          width: '16px',
+          height: '16px',
           backgroundColor: 'white',
           borderRadius: '50%',
           transition: 'left 0.2s',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
         }}
       />
     </button>
@@ -220,51 +220,51 @@ export default function App() {
       backgroundColor: 'white',
       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
       transition: 'all 0.3s ease',
-      padding: '20px',
+      padding: '16px',
       display: 'flex',
       flexDirection: 'column' as const,
-      gap: '12px',
+      gap: '10px',
     };
 
     switch (position) {
       case 'top':
         return {
           ...baseStyle,
-          top: isHovered ? '8px' : '-650px',
+          top: isHovered ? '8px' : '-520px',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '500px',
-          height: '600px',
+          width: '450px',
+          height: '480px',
           borderRadius: '0 0 12px 12px',
         };
       case 'right':
         return {
           ...baseStyle,
-          right: isHovered ? '8px' : '-550px',
+          right: isHovered ? '8px' : '-480px',
           top: '50%',
           transform: 'translateY(-50%)',
-          width: '500px',
-          height: '600px',
+          width: '450px',
+          height: '480px',
           borderRadius: '12px 0 0 12px',
         };
       case 'bottom':
         return {
           ...baseStyle,
-          bottom: isHovered ? '8px' : '-650px',
+          bottom: isHovered ? '8px' : '-520px',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '500px',
-          height: '600px',
+          width: '450px',
+          height: '480px',
           borderRadius: '12px 12px 0 0',
         };
       case 'left':
         return {
           ...baseStyle,
-          left: isHovered ? '8px' : '-550px',
+          left: isHovered ? '8px' : '-480px',
           top: '50%',
           transform: 'translateY(-50%)',
-          width: '500px',
-          height: '600px',
+          width: '450px',
+          height: '480px',
           borderRadius: '0 12px 12px 0',
         };
       default:
@@ -309,7 +309,7 @@ export default function App() {
                   fontSize: '14px',
                   fontWeight: '600',
                   color: '#374151',
-                  marginBottom: '12px',
+                  marginBottom: '10px',
                 }}>
                 Toggle Position
               </div>
@@ -318,17 +318,17 @@ export default function App() {
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
-                  gap: '12px',
+                  gap: '8px',
                   flexWrap: 'wrap',
                 }}>
                 <label
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
+                    gap: '5px',
                     cursor: 'pointer',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    borderRadius: '5px',
                     border: position === 'top' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
                     backgroundColor: position === 'top' ? '#eff6ff' : 'white',
                     transition: 'all 0.2s',
@@ -339,11 +339,11 @@ export default function App() {
                     value="top"
                     checked={position === 'top'}
                     onChange={() => rtlPositionStorage.setPosition('top' as PositionType)}
-                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                    style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
                   />
                   <span
                     style={{
-                      fontSize: '14px',
+                      fontSize: '12px',
                       color: position === 'top' ? '#1e40af' : '#374151',
                       fontWeight: position === 'top' ? '600' : '400',
                       userSelect: 'none',
@@ -356,10 +356,10 @@ export default function App() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
+                    gap: '5px',
                     cursor: 'pointer',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    borderRadius: '5px',
                     border: position === 'right' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
                     backgroundColor: position === 'right' ? '#eff6ff' : 'white',
                     transition: 'all 0.2s',
@@ -370,11 +370,11 @@ export default function App() {
                     value="right"
                     checked={position === 'right'}
                     onChange={() => rtlPositionStorage.setPosition('right' as PositionType)}
-                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                    style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
                   />
                   <span
                     style={{
-                      fontSize: '14px',
+                      fontSize: '12px',
                       color: position === 'right' ? '#1e40af' : '#374151',
                       fontWeight: position === 'right' ? '600' : '400',
                       userSelect: 'none',
@@ -387,10 +387,10 @@ export default function App() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
+                    gap: '5px',
                     cursor: 'pointer',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    borderRadius: '5px',
                     border: position === 'bottom' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
                     backgroundColor: position === 'bottom' ? '#eff6ff' : 'white',
                     transition: 'all 0.2s',
@@ -401,11 +401,11 @@ export default function App() {
                     value="bottom"
                     checked={position === 'bottom'}
                     onChange={() => rtlPositionStorage.setPosition('bottom' as PositionType)}
-                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                    style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
                   />
                   <span
                     style={{
-                      fontSize: '14px',
+                      fontSize: '12px',
                       color: position === 'bottom' ? '#1e40af' : '#374151',
                       fontWeight: position === 'bottom' ? '600' : '400',
                       userSelect: 'none',
@@ -418,10 +418,10 @@ export default function App() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
+                    gap: '5px',
                     cursor: 'pointer',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    borderRadius: '5px',
                     border: position === 'left' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
                     backgroundColor: position === 'left' ? '#eff6ff' : 'white',
                     transition: 'all 0.2s',
@@ -432,11 +432,11 @@ export default function App() {
                     value="left"
                     checked={position === 'left'}
                     onChange={() => rtlPositionStorage.setPosition('left' as PositionType)}
-                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                    style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
                   />
                   <span
                     style={{
-                      fontSize: '14px',
+                      fontSize: '12px',
                       color: position === 'left' ? '#1e40af' : '#374151',
                       fontWeight: position === 'left' ? '600' : '400',
                       userSelect: 'none',
@@ -448,14 +448,14 @@ export default function App() {
             </div>
 
             {/* Chat Input RTL Toggle */}
-            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
               <div
                 style={{
                   display: 'block',
                   fontSize: '14px',
                   fontWeight: '600',
                   color: '#374151',
-                  marginBottom: '16px',
+                  marginBottom: '10px',
                 }}>
                 Chat Input Direction
               </div>
@@ -464,7 +464,7 @@ export default function App() {
 
               <p
                 style={{
-                  marginTop: '8px',
+                  marginTop: '6px',
                   fontSize: '12px',
                   color: '#6b7280',
                 }}>
@@ -473,14 +473,14 @@ export default function App() {
             </div>
 
             {/* Main Content RTL Toggle */}
-            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
               <div
                 style={{
                   display: 'block',
                   fontSize: '14px',
                   fontWeight: '600',
                   color: '#374151',
-                  marginBottom: '16px',
+                  marginBottom: '10px',
                 }}>
                 Main Content Direction
               </div>
@@ -489,7 +489,7 @@ export default function App() {
 
               <p
                 style={{
-                  marginTop: '8px',
+                  marginTop: '6px',
                   fontSize: '12px',
                   color: '#6b7280',
                 }}>
@@ -500,14 +500,14 @@ export default function App() {
             </div>
 
             {/* Side Panel RTL Toggle */}
-            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
               <div
                 style={{
                   display: 'block',
                   fontSize: '14px',
                   fontWeight: '600',
                   color: '#374151',
-                  marginBottom: '16px',
+                  marginBottom: '10px',
                 }}>
                 Side Panel Direction
               </div>
@@ -516,7 +516,7 @@ export default function App() {
 
               <p
                 style={{
-                  marginTop: '8px',
+                  marginTop: '6px',
                   fontSize: '12px',
                   color: '#6b7280',
                 }}>
