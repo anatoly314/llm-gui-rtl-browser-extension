@@ -5,8 +5,10 @@ import {
   initRTLManager,
   getCurrentRTLState,
   getCurrentChatInputRTLState,
+  getCurrentChatId,
 } from '@extension/shared';
 import { rtlPositionStorage } from '@extension/storage';
+import { Toast } from '@extension/ui';
 import { useState, useEffect } from 'react';
 import type { PositionType } from '@extension/storage';
 
@@ -14,6 +16,7 @@ export default function App() {
   const [isHovered, setIsHovered] = useState(false);
   const [isRTL, setIsRTL] = useState(false);
   const [isChatInputRTL, setIsChatInputRTL] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   const storageData = useStorage(rtlPositionStorage);
   const position = storageData?.position || 'top';
 
@@ -29,11 +32,23 @@ export default function App() {
   }, []);
 
   const handleToggleRTL = async () => {
+    const chatId = getCurrentChatId();
+    if (!chatId) {
+      setShowToast(true);
+      return;
+    }
+
     const newState = await toggleRTL();
     setIsRTL(newState);
   };
 
   const handleToggleChatInputRTL = async () => {
+    const chatId = getCurrentChatId();
+    if (!chatId) {
+      setShowToast(true);
+      return;
+    }
+
     const newState = await toggleChatInputRTL();
     setIsChatInputRTL(newState);
   };
@@ -177,259 +192,269 @@ export default function App() {
   };
 
   return (
-    <div style={getContainerStyle()} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-      {/* Trigger bar */}
-      <div style={getTriggerStyle()} />
+    <>
+      {showToast && (
+        <Toast
+          message="Please start a chat first to apply RTL settings"
+          type="warning"
+          duration={3000}
+          onClose={() => setShowToast(false)}
+        />
+      )}
+      <div style={getContainerStyle()} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {/* Trigger bar */}
+        <div style={getTriggerStyle()} />
 
-      {/* Sliding panel */}
-      <div style={getPanelStyle()}>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: '18px',
-            fontWeight: 'bold',
-            color: '#1f2937',
-          }}>
-          RTL Settings
-        </h2>
-
-        <div style={{ marginTop: '12px' }}>
-          <div
+        {/* Sliding panel */}
+        <div style={getPanelStyle()}>
+          <h2
             style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '12px',
+              margin: 0,
+              fontSize: '18px',
+              fontWeight: 'bold',
+              color: '#1f2937',
             }}>
-            Toggle Position
-          </div>
+            RTL Settings
+          </h2>
 
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              gap: '12px',
-              flexWrap: 'wrap',
-            }}>
-            <label
+          <div style={{ marginTop: '12px' }}>
+            <div
+              style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '12px',
+              }}>
+              Toggle Position
+            </div>
+
+            <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: position === 'top' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                backgroundColor: position === 'top' ? '#eff6ff' : 'white',
-                transition: 'all 0.2s',
+                flexDirection: 'row',
+                gap: '12px',
+                flexWrap: 'wrap',
               }}>
-              <input
-                type="radio"
-                name="position"
-                value="top"
-                checked={position === 'top'}
-                onChange={() => rtlPositionStorage.setPosition('top' as PositionType)}
-                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
-              />
-              <span
+              <label
                 style={{
-                  fontSize: '14px',
-                  color: position === 'top' ? '#1e40af' : '#374151',
-                  fontWeight: position === 'top' ? '600' : '400',
-                  userSelect: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: position === 'top' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+                  backgroundColor: position === 'top' ? '#eff6ff' : 'white',
+                  transition: 'all 0.2s',
                 }}>
-                Top
-              </span>
-            </label>
+                <input
+                  type="radio"
+                  name="position"
+                  value="top"
+                  checked={position === 'top'}
+                  onChange={() => rtlPositionStorage.setPosition('top' as PositionType)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                />
+                <span
+                  style={{
+                    fontSize: '14px',
+                    color: position === 'top' ? '#1e40af' : '#374151',
+                    fontWeight: position === 'top' ? '600' : '400',
+                    userSelect: 'none',
+                  }}>
+                  Top
+                </span>
+              </label>
 
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: position === 'right' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                backgroundColor: position === 'right' ? '#eff6ff' : 'white',
-                transition: 'all 0.2s',
-              }}>
-              <input
-                type="radio"
-                name="position"
-                value="right"
-                checked={position === 'right'}
-                onChange={() => rtlPositionStorage.setPosition('right' as PositionType)}
-                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
-              />
-              <span
+              <label
                 style={{
-                  fontSize: '14px',
-                  color: position === 'right' ? '#1e40af' : '#374151',
-                  fontWeight: position === 'right' ? '600' : '400',
-                  userSelect: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: position === 'right' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+                  backgroundColor: position === 'right' ? '#eff6ff' : 'white',
+                  transition: 'all 0.2s',
                 }}>
-                Right
-              </span>
-            </label>
+                <input
+                  type="radio"
+                  name="position"
+                  value="right"
+                  checked={position === 'right'}
+                  onChange={() => rtlPositionStorage.setPosition('right' as PositionType)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                />
+                <span
+                  style={{
+                    fontSize: '14px',
+                    color: position === 'right' ? '#1e40af' : '#374151',
+                    fontWeight: position === 'right' ? '600' : '400',
+                    userSelect: 'none',
+                  }}>
+                  Right
+                </span>
+              </label>
 
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: position === 'bottom' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                backgroundColor: position === 'bottom' ? '#eff6ff' : 'white',
-                transition: 'all 0.2s',
-              }}>
-              <input
-                type="radio"
-                name="position"
-                value="bottom"
-                checked={position === 'bottom'}
-                onChange={() => rtlPositionStorage.setPosition('bottom' as PositionType)}
-                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
-              />
-              <span
+              <label
                 style={{
-                  fontSize: '14px',
-                  color: position === 'bottom' ? '#1e40af' : '#374151',
-                  fontWeight: position === 'bottom' ? '600' : '400',
-                  userSelect: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: position === 'bottom' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+                  backgroundColor: position === 'bottom' ? '#eff6ff' : 'white',
+                  transition: 'all 0.2s',
                 }}>
-                Bottom
-              </span>
-            </label>
+                <input
+                  type="radio"
+                  name="position"
+                  value="bottom"
+                  checked={position === 'bottom'}
+                  onChange={() => rtlPositionStorage.setPosition('bottom' as PositionType)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                />
+                <span
+                  style={{
+                    fontSize: '14px',
+                    color: position === 'bottom' ? '#1e40af' : '#374151',
+                    fontWeight: position === 'bottom' ? '600' : '400',
+                    userSelect: 'none',
+                  }}>
+                  Bottom
+                </span>
+              </label>
 
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: position === 'left' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                backgroundColor: position === 'left' ? '#eff6ff' : 'white',
-                transition: 'all 0.2s',
-              }}>
-              <input
-                type="radio"
-                name="position"
-                value="left"
-                checked={position === 'left'}
-                onChange={() => rtlPositionStorage.setPosition('left' as PositionType)}
-                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
-              />
-              <span
+              <label
                 style={{
-                  fontSize: '14px',
-                  color: position === 'left' ? '#1e40af' : '#374151',
-                  fontWeight: position === 'left' ? '600' : '400',
-                  userSelect: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: position === 'left' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+                  backgroundColor: position === 'left' ? '#eff6ff' : 'white',
+                  transition: 'all 0.2s',
                 }}>
-                Left
-              </span>
-            </label>
-          </div>
-        </div>
-
-        {/* RTL Toggle */}
-        <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
-          <div
-            style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '12px',
-            }}>
-            RTL Direction
+                <input
+                  type="radio"
+                  name="position"
+                  value="left"
+                  checked={position === 'left'}
+                  onChange={() => rtlPositionStorage.setPosition('left' as PositionType)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                />
+                <span
+                  style={{
+                    fontSize: '14px',
+                    color: position === 'left' ? '#1e40af' : '#374151',
+                    fontWeight: position === 'left' ? '600' : '400',
+                    userSelect: 'none',
+                  }}>
+                  Left
+                </span>
+              </label>
+            </div>
           </div>
 
-          <button
-            onClick={handleToggleRTL}
-            style={{
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: 'white',
-              backgroundColor: isRTL ? '#10b981' : '#6b7280',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = isRTL ? '#059669' : '#4b5563';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = isRTL ? '#10b981' : '#6b7280';
-            }}>
-            {isRTL ? 'RTL Enabled ✓' : 'RTL Disabled'}
-          </button>
+          {/* RTL Toggle */}
+          <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+            <div
+              style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '12px',
+              }}>
+              RTL Direction
+            </div>
 
-          <p
-            style={{
-              marginTop: '8px',
-              fontSize: '12px',
-              color: '#6b7280',
-            }}>
-            {isRTL ? 'Side panel is displayed right-to-left' : 'Side panel is displayed left-to-right'}
-          </p>
-        </div>
+            <button
+              onClick={handleToggleRTL}
+              style={{
+                padding: '10px 20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'white',
+                backgroundColor: isRTL ? '#10b981' : '#6b7280',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = isRTL ? '#059669' : '#4b5563';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = isRTL ? '#10b981' : '#6b7280';
+              }}>
+              {isRTL ? 'RTL Enabled ✓' : 'RTL Disabled'}
+            </button>
 
-        {/* Chat Input RTL Toggle */}
-        <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
-          <div
-            style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '12px',
-            }}>
-            Chat Input Direction
+            <p
+              style={{
+                marginTop: '8px',
+                fontSize: '12px',
+                color: '#6b7280',
+              }}>
+              {isRTL ? 'Side panel is displayed right-to-left' : 'Side panel is displayed left-to-right'}
+            </p>
           </div>
 
-          <button
-            onClick={handleToggleChatInputRTL}
-            style={{
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: 'white',
-              backgroundColor: isChatInputRTL ? '#10b981' : '#6b7280',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = isChatInputRTL ? '#059669' : '#4b5563';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = isChatInputRTL ? '#10b981' : '#6b7280';
-            }}>
-            {isChatInputRTL ? 'RTL Enabled ✓' : 'RTL Disabled'}
-          </button>
+          {/* Chat Input RTL Toggle */}
+          <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+            <div
+              style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '12px',
+              }}>
+              Chat Input Direction
+            </div>
 
-          <p
-            style={{
-              marginTop: '8px',
-              fontSize: '12px',
-              color: '#6b7280',
-            }}>
-            {isChatInputRTL ? 'Chat input is displayed right-to-left' : 'Chat input is displayed left-to-right'}
-          </p>
+            <button
+              onClick={handleToggleChatInputRTL}
+              style={{
+                padding: '10px 20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'white',
+                backgroundColor: isChatInputRTL ? '#10b981' : '#6b7280',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = isChatInputRTL ? '#059669' : '#4b5563';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = isChatInputRTL ? '#10b981' : '#6b7280';
+              }}>
+              {isChatInputRTL ? 'RTL Enabled ✓' : 'RTL Disabled'}
+            </button>
+
+            <p
+              style={{
+                marginTop: '8px',
+                fontSize: '12px',
+                color: '#6b7280',
+              }}>
+              {isChatInputRTL ? 'Chat input is displayed right-to-left' : 'Chat input is displayed left-to-right'}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
