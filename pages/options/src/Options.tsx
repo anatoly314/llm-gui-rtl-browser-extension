@@ -15,9 +15,32 @@ const Options = () => {
       <button onClick={goGithubSite}>
         <img src={chrome.runtime.getURL(logo)} className="App-logo" alt="logo" />
       </button>
-      <p>
-        Edit <code>pages/options/src/Options.tsx</code>
+      <h2 className="mb-2 text-xl font-bold">Claude.ai RTL Support</h2>
+      <p className="mb-4 max-w-md text-center text-sm">
+        Chrome extension that adds right-to-left text direction support to Claude.ai
       </p>
+      <div className="mb-4 space-y-2 text-xs">
+        <p>
+          <strong>Created by:</strong>{' '}
+          <a
+            href="https://anatoly.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline hover:text-blue-800">
+            Anatoly Tarnavsky
+          </a>
+        </p>
+        <p>
+          <strong>Repository:</strong>{' '}
+          <a
+            href="https://github.com/anatolyefimov/llm-gui-rtl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline hover:text-blue-800">
+            github.com/anatolyefimov/llm-gui-rtl
+          </a>
+        </p>
+      </div>
       <ToggleButton onClick={exampleThemeStorage.toggle}>{t('toggleTheme')}</ToggleButton>
     </div>
   );
