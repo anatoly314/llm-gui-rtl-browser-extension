@@ -19,7 +19,7 @@ A Chrome extension that adds comprehensive right-to-left (RTL) text direction su
 
 ### From Release
 
-1. Download the latest release ZIP from the [Releases page](https://github.com/anatolyefimov/llm-gui-rtl/releases)
+1. Download the latest release ZIP from the [Releases page](https://github.com/anatoly314/llm-gui-rtl-browser-extension/releases)
 2. Extract the ZIP file
 3. Open Chrome and navigate to `chrome://extensions`
 4. Enable "Developer mode" in the top right
@@ -27,7 +27,7 @@ A Chrome extension that adds comprehensive right-to-left (RTL) text direction su
 
 ### From Source
 
-1. Clone the repository: `git clone https://github.com/anatolyefimov/llm-gui-rtl.git`
+1. Clone the repository: `git clone https://github.com/anatoly314/llm-gui-rtl-browser-extension.git`
 2. Install dependencies: `pnpm install`
 3. Build the extension: `pnpm build`
 4. Load the `dist` folder in Chrome as an unpacked extension
