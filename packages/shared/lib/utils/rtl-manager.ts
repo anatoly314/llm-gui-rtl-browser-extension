@@ -84,39 +84,64 @@ export const toggleRTL = async (): Promise<boolean> => {
 };
 
 /**
- * Initializes RTL manager - applies saved state and watches for URL changes
+ * Initializes RTL manager - applies saved state and watches for URL changes and DOM changes
  */
 export const initRTLManager = (): (() => void) => {
   let currentChatId: string | null = null;
+  let lastElement: HTMLElement | null = null;
+  let lastUrl = location.href;
 
   // Apply RTL state for current chat
   const applyCurrentChatRTL = async () => {
     const chatId = getCurrentChatId();
-    if (!chatId || chatId === currentChatId) return;
+    if (!chatId) return;
 
-    currentChatId = chatId;
+    // Check if chat changed
+    const chatChanged = chatId !== currentChatId;
+    if (chatChanged) {
+      currentChatId = chatId;
+    }
+
+    const sidePanelContent = findSidePanelContent();
+    if (!sidePanelContent) return;
+
+    // Check if element is new or doesn't have correct direction
+    const elementChanged = sidePanelContent !== lastElement;
     const isRTL = await getCurrentRTLState();
-    applyRTL(isRTL);
-    console.log(`[RTL Manager] Applied state for chat ${chatId}: RTL=${isRTL}`);
+    const needsReapply = elementChanged || sidePanelContent.style.direction !== (isRTL ? 'rtl' : 'ltr');
+
+    if (needsReapply) {
+      lastElement = sidePanelContent;
+      applyRTL(isRTL);
+
+      if (chatChanged) {
+        console.log(`[RTL Manager] Applied state for chat ${chatId}: RTL=${isRTL}`);
+      } else if (elementChanged) {
+        console.log(`[RTL Manager] Reapplied RTL after DOM change: RTL=${isRTL}`);
+      }
+    }
   };
 
   // Initial apply
   applyCurrentChatRTL();
 
-  // Watch for URL changes (when switching between chats)
-  let lastUrl = location.href;
-  const urlObserver = new MutationObserver(() => {
+  // Watch for URL changes and DOM changes
+  const observer = new MutationObserver(() => {
     const currentUrl = location.href;
+
+    // Always check if RTL needs to be reapplied (handles both URL changes and DOM recreation)
     if (currentUrl !== lastUrl) {
       lastUrl = currentUrl;
-      applyCurrentChatRTL();
+      lastElement = null; // Reset element tracking on navigation
     }
+
+    applyCurrentChatRTL();
   });
 
-  urlObserver.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.body, { childList: true, subtree: true });
 
   // Return cleanup function
   return () => {
-    urlObserver.disconnect();
+    observer.disconnect();
   };
 };
