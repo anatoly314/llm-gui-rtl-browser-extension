@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "Extension description",
-    "message": "Chrome extension boilerplate developed with Vite, React and Typescript"
+    "message": "RTL text direction support for AI chat interfaces. Optimized for Claude.ai with independent toggles for all text areas."
   },
   "extensionName": {
     "description": "Extension name",
-    "message": "Chrome extension boilerplate"
+    "message": "RTL Support for AI Chat (Claude & More)"
   },
   "toggleTheme": {
     "message": "Toggle theme"
