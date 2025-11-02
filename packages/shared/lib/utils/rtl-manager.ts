@@ -89,6 +89,29 @@ const applyChatInputRTL = (enable: boolean): void => {
 };
 
 /**
+ * Injects global CSS to force KaTeX elements to always be LTR
+ */
+const injectKatexLTRStyle = (): void => {
+  const styleId = 'katex-ltr-override';
+
+  // Check if style already exists
+  if (document.getElementById(styleId)) {
+    return;
+  }
+
+  const style = document.createElement('style');
+  style.id = styleId;
+  style.textContent = `
+    .katex,
+    .katex * {
+      direction: ltr !important;
+      unicode-bidi: embed !important;
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+/**
  * Applies or removes RTL direction to the main content
  */
 const applyMainContentRTL = (enable: boolean): void => {
@@ -352,6 +375,9 @@ export const initRTLManager = (): (() => void) => {
       }
     }
   };
+
+  // Inject global CSS to force katex to always be LTR
+  injectKatexLTRStyle();
 
   // Initial apply
   applyCurrentChatRTL();
