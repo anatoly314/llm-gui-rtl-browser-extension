@@ -62,13 +62,14 @@ export default function App() {
   const storageData = useStorage(rtlPositionStorage);
   const position = storageData?.position || 'top';
 
-  // Check if panel should be visible (only on /new or when chatId exists)
+  // Check if panel should be visible (only on /new, /project/, or when chatId exists)
   const checkPanelVisibility = () => {
     const path = window.location.pathname;
     const chatId = getCurrentChatId();
     const isNewPage = path === '/new';
+    const isProjectPage = path.startsWith('/project/');
     const hasChatId = !!chatId;
-    setShouldShowPanel(isNewPage || hasChatId);
+    setShouldShowPanel(isNewPage || isProjectPage || hasChatId);
   };
 
   // Initialize RTL manager and load current state
@@ -84,8 +85,9 @@ export default function App() {
 
     // Load initial RTL states and check visibility
     const initializeStates = async () => {
-      // If starting on /new page, clear any previous "new" settings
-      if (window.location.pathname === '/new') {
+      // If starting on /new or /project/* page, clear any previous "new" settings
+      const path = window.location.pathname;
+      if (path === '/new' || path.startsWith('/project/')) {
         await clearNewChatSettings();
       }
       loadRTLStates();
@@ -103,8 +105,9 @@ export default function App() {
 
       // Check if chat changed
       if (currentChatId !== lastChatId) {
-        // If transitioning from /new to a chat with UUID, transfer settings FIRST
-        if (!lastChatId && currentChatId && lastPath === '/new') {
+        // If transitioning from /new or /project/* to a chat with UUID, transfer settings FIRST
+        const wasOnNewOrProject = lastPath === '/new' || lastPath.startsWith('/project/');
+        if (!lastChatId && currentChatId && wasOnNewOrProject) {
           await transferNewChatSettings(currentChatId);
         }
 
@@ -114,8 +117,10 @@ export default function App() {
 
       // Check if path changed (affects visibility)
       if (currentPath !== lastPath) {
-        // If navigating TO /new page, clear any previous "new" settings
-        if (currentPath === '/new' && lastPath !== '/new') {
+        // If navigating TO /new or /project/* page, clear any previous "new" settings
+        const isNewOrProject = currentPath === '/new' || currentPath.startsWith('/project/');
+        const wasNotNewOrProject = lastPath !== '/new' && !lastPath.startsWith('/project/');
+        if (isNewOrProject && wasNotNewOrProject) {
           await clearNewChatSettings();
           loadRTLStates(); // Reload to show default states
         }

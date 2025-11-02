@@ -1,5 +1,3 @@
-import { t } from '@extension/i18n';
-
 // FIXME: IMPORT SVG ICON INSTEAD OF DEFINING INLINE IT HERE
 const WarningIcon = ({ className }: { className: string }) => (
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className={className}>
@@ -15,7 +13,7 @@ const WarningIcon = ({ className }: { className: string }) => (
 export const ErrorHeader = () => (
   <div className="text-center">
     <WarningIcon className={'mx-auto h-24 w-24 text-red-500'} />
-    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">{t('displayErrorInfo')}</h2>
-    <p className="mt-2 text-sm text-gray-600">{t('displayErrorDescription')}.</p>
+    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Error</h2>
+    <p className="mt-2 text-sm text-gray-600">Something went wrong. Please try again.</p>
   </div>
 );

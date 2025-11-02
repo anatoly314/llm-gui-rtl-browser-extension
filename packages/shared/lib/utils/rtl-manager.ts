@@ -129,13 +129,14 @@ const applyMainContentRTL = (enable: boolean): void => {
 };
 
 /**
- * Gets the effective chat ID - returns "new" for /new page, or actual UUID in chat
+ * Gets the effective chat ID - returns "new" for /new or /project/* pages, or actual UUID in chat
  */
 const getEffectiveChatId = (): string => {
   const chatId = getCurrentChatId();
   if (chatId) return chatId;
-  // If on /new page, use special "new" key
-  if (window.location.pathname === '/new') return 'new';
+  // If on /new page or /project/* page, use special "new" key
+  const path = window.location.pathname;
+  if (path === '/new' || path.startsWith('/project/')) return 'new';
   return '';
 };
 

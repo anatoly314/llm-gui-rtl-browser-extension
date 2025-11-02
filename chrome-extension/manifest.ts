@@ -4,10 +4,6 @@ import type { ManifestType } from '@extension/shared';
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 /**
- * @prop default_locale
- * if you want to support multiple languages, you can use the following reference
- * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Internationalization
- *
  * @prop browser_specific_settings
  * Must be unique to your extension to upload to addons.mozilla.org
  * (you can delete if you only want a chrome extension)
@@ -20,16 +16,16 @@ const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
  */
 const manifest = {
   manifest_version: 3,
-  default_locale: 'en',
-  name: '__MSG_extensionName__',
+  name: 'AI Chat RTL Support',
   browser_specific_settings: {
     gecko: {
-      id: 'example@example.com',
+      id: 'ai-chat-rtl@anatoly.dev',
       strict_min_version: '109.0',
     },
   },
   version: packageJson.version,
-  description: '__MSG_extensionDescription__',
+  description:
+    'Add right-to-left text direction support to AI chat interfaces with independent toggles for input, content, and side panels',
   host_permissions: ['https://claude.ai/*'],
   permissions: ['storage'],
   options_page: 'options/index.html',
