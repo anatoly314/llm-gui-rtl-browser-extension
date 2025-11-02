@@ -43,14 +43,14 @@ const findMainContent = (): HTMLElement | null => {
         return previousSibling as HTMLElement;
       }
 
-      console.warn('[RTL Manager] Sticky element found but no previous sibling');
+      console.debug('[RTL Manager] Sticky element found but no previous sibling');
       return null;
     }
 
     current = current.parentElement;
   }
 
-  console.warn('[RTL Manager] No element with sticky class found');
+  console.debug('[RTL Manager] No element with sticky class found');
   return null;
 };
 
@@ -60,7 +60,7 @@ const findMainContent = (): HTMLElement | null => {
 const applyRTL = (enable: boolean): void => {
   const sidePanelContent = findSidePanelContent();
   if (!sidePanelContent) {
-    console.warn('[RTL Manager] Side panel content not found');
+    console.debug('[RTL Manager] Side panel content not found');
     return;
   }
 
@@ -77,7 +77,7 @@ const applyRTL = (enable: boolean): void => {
 const applyChatInputRTL = (enable: boolean): void => {
   const chatInput = findChatInput();
   if (!chatInput) {
-    console.warn('[RTL Manager] Chat input not found');
+    console.debug('[RTL Manager] Chat input not found');
     return;
   }
 
@@ -94,7 +94,7 @@ const applyChatInputRTL = (enable: boolean): void => {
 const applyMainContentRTL = (enable: boolean): void => {
   const mainContent = findMainContent();
   if (!mainContent) {
-    console.warn('[RTL Manager] Main content not found');
+    console.debug('[RTL Manager] Main content not found');
     return;
   }
 
@@ -168,6 +168,18 @@ export const getCurrentMainContentRTLState = async (): Promise<boolean> => {
 };
 
 /**
+ * Clears the "new" temp key settings to ensure fresh start on /new page
+ */
+export const clearNewChatSettings = async (): Promise<void> => {
+  try {
+    const { chatRTLStorage } = await import('@extension/storage');
+    await chatRTLStorage.resetChatSettings('new');
+  } catch (error) {
+    console.error('[RTL Manager] Error clearing new chat settings:', error);
+  }
+};
+
+/**
  * Transfers settings from "new" temp key to actual chat UUID, then clears the temp key
  */
 export const transferNewChatSettings = async (newChatId: string): Promise<void> => {
@@ -195,7 +207,7 @@ export const transferNewChatSettings = async (newChatId: string): Promise<void> 
 export const toggleRTL = async (): Promise<boolean> => {
   const chatId = getEffectiveChatId();
   if (!chatId) {
-    console.warn('[RTL Manager] No valid context for RTL toggle');
+    console.debug('[RTL Manager] No valid context for RTL toggle');
     return false;
   }
 
@@ -226,7 +238,7 @@ export const toggleRTL = async (): Promise<boolean> => {
 export const toggleChatInputRTL = async (): Promise<boolean> => {
   const chatId = getEffectiveChatId();
   if (!chatId) {
-    console.warn('[RTL Manager] No valid context for chat input RTL toggle');
+    console.debug('[RTL Manager] No valid context for chat input RTL toggle');
     return false;
   }
 
@@ -256,7 +268,7 @@ export const toggleChatInputRTL = async (): Promise<boolean> => {
 export const toggleMainContentRTL = async (): Promise<boolean> => {
   const chatId = getEffectiveChatId();
   if (!chatId) {
-    console.warn('[RTL Manager] No valid context for main content RTL toggle');
+    console.debug('[RTL Manager] No valid context for main content RTL toggle');
     return false;
   }
 

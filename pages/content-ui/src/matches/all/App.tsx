@@ -9,6 +9,7 @@ import {
   getCurrentMainContentRTLState,
   getCurrentChatId,
   transferNewChatSettings,
+  clearNewChatSettings,
 } from '@extension/shared';
 import { rtlPositionStorage } from '@extension/storage';
 import { Toast } from '@extension/ui';
@@ -82,8 +83,16 @@ export default function App() {
     };
 
     // Load initial RTL states and check visibility
-    loadRTLStates();
-    checkPanelVisibility();
+    const initializeStates = async () => {
+      // If starting on /new page, clear any previous "new" settings
+      if (window.location.pathname === '/new') {
+        await clearNewChatSettings();
+      }
+      loadRTLStates();
+      checkPanelVisibility();
+    };
+
+    initializeStates();
 
     // Watch for chat changes and visibility by monitoring URL
     let lastChatId = getCurrentChatId();
@@ -105,6 +114,12 @@ export default function App() {
 
       // Check if path changed (affects visibility)
       if (currentPath !== lastPath) {
+        // If navigating TO /new page, clear any previous "new" settings
+        if (currentPath === '/new' && lastPath !== '/new') {
+          await clearNewChatSettings();
+          loadRTLStates(); // Reload to show default states
+        }
+
         lastPath = currentPath;
         checkPanelVisibility();
       }
