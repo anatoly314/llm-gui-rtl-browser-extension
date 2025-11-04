@@ -18,15 +18,16 @@
 - **Works Everywhere**: Functions on `/new`, `/project/*` pages and in active chats
 
 ### ChatGPT
+- **Input RTL Toggle**: Control text direction for the input field on home page and in conversations
 - **KaTeX Fix**: Force mathematical expressions to display correctly in RTL responses
-- **Smart Detection**: Automatically detects ChatGPT conversations
+- **Smart Detection**: Automatically detects ChatGPT conversations and applies saved settings
 
 ### General
 - **Tabbed Interface**: Platform-specific controls with automatic tab selection
 - **Per-Chat Settings**: RTL preferences are saved per conversation with automatic UUID storage
 - **Modern UI**: Beautiful toggle switches with smooth animations
 - **Persistent Storage**: Settings are automatically saved and restored across sessions
-- **Smart Detection**: Automatically detects chat changes and applies saved settings
+- **Provider-Based Architecture**: Modular design allows easy addition of new AI platforms
 
 ## 🚀 Installation
 
@@ -64,10 +65,27 @@
 1. Navigate to [ChatGPT](https://chatgpt.com)
 2. Hover over the blue trigger bar at the top/right/bottom/left of the screen
 3. The control panel will slide out with the ChatGPT tab selected
-4. Enable "Fix KaTeX Math Expressions" to force math to display correctly in RTL responses
+4. Configure:
+   - Input direction (LTR/RTL) - works on home page and in conversations
+   - Fix KaTeX Math Expressions - force math to display correctly in RTL responses
 5. Your settings are automatically saved per chat
 
 Note: Tabs are platform-specific - you can only use the Claude.ai tab on Claude.ai and the ChatGPT tab on ChatGPT.
+
+## 🏗️ Architecture
+
+This extension uses a **provider-based architecture** for maximum flexibility:
+
+- **Modular Providers**: Each AI platform (Claude, ChatGPT) has its own isolated module
+- **Separate Storage**: Provider-specific storage namespaces prevent data conflicts
+- **Independent UI Components**: Self-contained tab components for each provider
+- **Easy Extensibility**: Adding new AI platforms (Gemini, Perplexity, etc.) requires no changes to existing code
+
+For detailed architecture documentation, see [CLAUDE.md](CLAUDE.md).
+
+## 🔄 Upgrading from v0.7.x
+
+Version 0.8.0+ includes automatic storage migration to the new provider-based architecture. Your settings will be preserved and automatically transferred to the new storage structure on first load. See [MIGRATION.md](MIGRATION.md) for details.
 
 ## 👨‍💻 Author
 
@@ -80,3 +98,4 @@ Created by [Anatoly Tarnavsky](https://anatoly.dev)
 - Turborepo (monorepo architecture)
 - Chrome Extension Manifest V3
 - Tailwind CSS
+- Provider-based modular architecture

@@ -1,218 +1,37 @@
+/**
+ * RTL Manager - Main Orchestrator
+ * Delegates to appropriate provider-specific RTL manager based on current site
+ */
+
 import { getCurrentChatId } from './chat-utils.js';
-
-/**
- * Detects if current site is Claude.ai
- */
-const isClaude = (): boolean => {
-  const hostname = window.location.hostname;
-  return hostname === 'claude.ai';
-};
-
-/**
- * Detects if current site is ChatGPT
- */
-const isChatGPT = (): boolean => {
-  const hostname = window.location.hostname;
-  return hostname === 'chatgpt.com' || hostname === 'chat.openai.com';
-};
-
-/**
- * Finds the side panel content element with single class 'h-full'
- */
-const findSidePanelContent = (): HTMLElement | null => {
-  const anchor = document.querySelector('.cursor-col-resize.max-md\\:hidden');
-  if (!anchor) return null;
-
-  const sidePanel = anchor.nextElementSibling;
-  if (!sidePanel) return null;
-
-  // Find first element with single class 'h-full'
-  const elements = Array.from(sidePanel.querySelectorAll('*')) as HTMLElement[];
-  return elements.find(el => el.classList.length === 1 && el.classList[0] === 'h-full') || null;
-};
-
-/**
- * Finds the chat input element
- */
-const findChatInput = (): HTMLElement | null => document.querySelector('[data-testid="chat-input"]');
-
-/**
- * Finds the main content element by traversing up from chat input to sticky element,
- * then selecting its previous sibling (the first child with flex-1 class)
- */
-const findMainContent = (): HTMLElement | null => {
-  const chatInput = document.querySelector('[data-testid="chat-input"]');
-  if (!chatInput) return null;
-
-  // Traverse up to find element with sticky class
-  let current: Element | null = chatInput.parentElement;
-  let depth = 0;
-
-  while (current && depth < 20) {
-    depth++;
-    const classes = Array.from(current.classList);
-
-    if (classes.some(c => c.includes('sticky'))) {
-      // Found sticky element (second child), get its previous sibling (first child - main content)
-      const previousSibling = current.previousElementSibling;
-      if (previousSibling) {
-        return previousSibling as HTMLElement;
-      }
-
-      console.debug('[RTL Manager] Sticky element found but no previous sibling');
-      return null;
-    }
-
-    current = current.parentElement;
-  }
-
-  console.debug('[RTL Manager] No element with sticky class found');
-  return null;
-};
-
-/**
- * Applies or removes RTL direction to the side panel content
- */
-const applyRTL = (enable: boolean): void => {
-  // Only apply on Claude.ai
-  if (!isClaude()) return;
-
-  const sidePanelContent = findSidePanelContent();
-  if (!sidePanelContent) {
-    console.debug('[RTL Manager] Side panel content not found');
-    return;
-  }
-
-  if (enable) {
-    sidePanelContent.style.direction = 'rtl';
-  } else {
-    sidePanelContent.style.direction = 'ltr';
-  }
-};
-
-/**
- * Applies or removes RTL direction to the chat input
- */
-const applyChatInputRTL = (enable: boolean): void => {
-  // Only apply on Claude.ai
-  if (!isClaude()) return;
-
-  const chatInput = findChatInput();
-  if (!chatInput) {
-    console.debug('[RTL Manager] Chat input not found');
-    return;
-  }
-
-  if (enable) {
-    chatInput.style.direction = 'rtl';
-  } else {
-    chatInput.style.direction = 'ltr';
-  }
-};
-
-/**
- * Injects global CSS to force KaTeX elements to always be LTR (Claude.ai version)
- */
-const injectKatexLTRStyle = (): void => {
-  const styleId = 'katex-ltr-override';
-
-  // Check if style already exists
-  if (document.getElementById(styleId)) {
-    return;
-  }
-
-  const style = document.createElement('style');
-  style.id = styleId;
-  style.textContent = `
-    .katex,
-    .katex * {
-      direction: ltr !important;
-      unicode-bidi: embed !important;
-    }
-  `;
-  document.head.appendChild(style);
-};
-
-/**
- * Applies or removes special KaTeX styling for ChatGPT
- */
-const applyChatGPTKatexStyle = (enable: boolean): void => {
-  // Only apply on ChatGPT
-  if (!isChatGPT()) return;
-
-  const styleId = 'chatgpt-katex-rtl-override';
-  const existingStyle = document.getElementById(styleId);
-
-  if (enable) {
-    // Add style if it doesn't exist
-    if (!existingStyle) {
-      const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = `
-        .katex {
-          direction: ltr;
-          unicode-bidi: bidi-override;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  } else {
-    // Remove style if it exists
-    if (existingStyle) {
-      existingStyle.remove();
-    }
-  }
-};
-
-/**
- * Finds the ChatGPT prompt textarea
- */
-const findChatGPTInput = (): HTMLElement | null => document.getElementById('prompt-textarea');
-
-/**
- * Applies or removes RTL direction to the ChatGPT input
- */
-const applyChatGPTInputRTL = (enable: boolean): void => {
-  // Only apply on ChatGPT
-  if (!isChatGPT()) return;
-
-  const input = findChatGPTInput();
-  if (!input) {
-    console.debug('[RTL Manager] ChatGPT input not found');
-    return;
-  }
-
-  if (enable) {
-    input.style.direction = 'rtl';
-  } else {
-    input.style.direction = 'ltr';
-  }
-};
-
-/**
- * Applies or removes RTL direction to the main content
- */
-const applyMainContentRTL = (enable: boolean): void => {
-  // Only apply on Claude.ai
-  if (!isClaude()) return;
-
-  const mainContent = findMainContent();
-  if (!mainContent) {
-    console.debug('[RTL Manager] Main content not found');
-    return;
-  }
-
-  if (enable) {
-    mainContent.style.direction = 'rtl';
-  } else {
-    mainContent.style.direction = 'ltr';
-  }
-};
+import {
+  getCurrentChatGPTKatexRTLState as getChatGPTKatexRTLState,
+  getCurrentChatGPTInputRTLState as getChatGPTInputRTLState,
+  toggleChatGPTKatexRTL as toggleChatGPTKatex,
+  toggleChatGPTInputRTL as toggleChatGPTInput,
+  initChatGPTRTLManager,
+  reapplyChatGPTStyles as reapplyChatGPT,
+  applyChatGPTKatexStyle as applyChatGPTKatex,
+  applyChatGPTInputRTL as applyChatGPTInput,
+} from '../providers/chatgpt/chatgpt-rtl-manager.js';
+import {
+  getCurrentRTLState as getClaudeRTLState,
+  getCurrentChatInputRTLState as getClaudeChatInputRTLState,
+  getCurrentMainContentRTLState as getClaudeMainContentRTLState,
+  toggleRTL as toggleClaudeRTL,
+  toggleChatInputRTL as toggleClaudeChatInputRTL,
+  toggleMainContentRTL as toggleClaudeMainContentRTL,
+  initClaudeRTLManager,
+  applyRTL as applyClaudeRTL,
+  applyChatInputRTL as applyClaudeChatInputRTL,
+  applyMainContentRTL as applyClaudeMainContentRTL,
+} from '../providers/claude/claude-rtl-manager.js';
+import { getCurrentProvider, isClaude, isChatGPT } from '../providers/provider-detector.js';
 
 /**
  * Gets the effective chat ID - returns "new" for /new, /project/* pages, or ChatGPT home, or actual UUID in chat
  */
-const getEffectiveChatId = (): string => {
+export const getEffectiveChatId = (): string => {
   const chatId = getCurrentChatId();
   if (chatId) return chatId;
 
@@ -229,88 +48,43 @@ const getEffectiveChatId = (): string => {
 };
 
 /**
- * Gets the current side panel RTL state from storage for the current chat
+ * Gets the current side panel RTL state from storage for the current chat (Claude.ai only)
  */
 export const getCurrentRTLState = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) return false;
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const settings = await chatRTLStorage.getChatSettings(chatId);
-    return settings.isRTL;
-  } catch (error) {
-    console.error('[RTL Manager] Error getting side panel RTL state:', error);
-    return false;
-  }
+  if (!isClaude()) return false;
+  return getClaudeRTLState();
 };
 
 /**
- * Gets the current chat input RTL state from storage for the current chat
+ * Gets the current chat input RTL state from storage for the current chat (Claude.ai only)
  */
 export const getCurrentChatInputRTLState = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) return false;
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const settings = await chatRTLStorage.getChatSettings(chatId);
-    return settings.isChatInputRTL;
-  } catch (error) {
-    console.error('[RTL Manager] Error getting chat input RTL state:', error);
-    return false;
-  }
+  if (!isClaude()) return false;
+  return getClaudeChatInputRTLState();
 };
 
 /**
- * Gets the current main content RTL state from storage for the current chat
+ * Gets the current main content RTL state from storage for the current chat (Claude.ai only)
  */
 export const getCurrentMainContentRTLState = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) return false;
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const settings = await chatRTLStorage.getChatSettings(chatId);
-    return settings.isMainContentRTL;
-  } catch (error) {
-    console.error('[RTL Manager] Error getting main content RTL state:', error);
-    return false;
-  }
+  if (!isClaude()) return false;
+  return getClaudeMainContentRTLState();
 };
 
 /**
- * Gets the current ChatGPT KaTeX RTL state from storage for the current chat
+ * Gets the current ChatGPT KaTeX RTL state from storage for the current chat (ChatGPT only)
  */
 export const getCurrentChatGPTKatexRTLState = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) return false;
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const settings = await chatRTLStorage.getChatSettings(chatId);
-    return settings.isChatGPTKatexRTL;
-  } catch (error) {
-    console.error('[RTL Manager] Error getting ChatGPT KaTeX RTL state:', error);
-    return false;
-  }
+  if (!isChatGPT()) return false;
+  return getChatGPTKatexRTLState();
 };
 
 /**
- * Gets the current ChatGPT Input RTL state from storage for the current chat
+ * Gets the current ChatGPT Input RTL state from storage for the current chat (ChatGPT only)
  */
 export const getCurrentChatGPTInputRTLState = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) return false;
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const settings = await chatRTLStorage.getChatSettings(chatId);
-    return settings.isChatGPTInputRTL;
-  } catch (error) {
-    console.error('[RTL Manager] Error getting ChatGPT Input RTL state:', error);
-    return false;
-  }
+  if (!isChatGPT()) return false;
+  return getChatGPTInputRTLState();
 };
 
 /**
@@ -318,8 +92,10 @@ export const getCurrentChatGPTInputRTLState = async (): Promise<boolean> => {
  */
 export const clearNewChatSettings = async (): Promise<void> => {
   try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    await chatRTLStorage.resetChatSettings('new');
+    // Clear from both storages to be safe
+    const { claudeChatStorage, chatgptChatStorage } = await import('@extension/storage');
+    await claudeChatStorage.resetChatSettings('new');
+    await chatgptChatStorage.resetChatSettings('new');
   } catch (error) {
     console.error('[RTL Manager] Error clearing new chat settings:', error);
   }
@@ -332,23 +108,34 @@ export const transferNewChatSettings = async (newChatId: string): Promise<void> 
   if (!newChatId || newChatId === 'new') return;
 
   try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const tempSettings = await chatRTLStorage.getChatSettings('new');
+    const { claudeChatStorage, chatgptChatStorage } = await import('@extension/storage');
 
-    // Only transfer if temp settings have non-default values
-    // Check both Claude and ChatGPT specific settings
-    if (
-      tempSettings.isRTL ||
-      tempSettings.isChatInputRTL ||
-      tempSettings.isMainContentRTL ||
-      tempSettings.isChatGPTKatexRTL ||
-      tempSettings.isChatGPTInputRTL
-    ) {
-      console.debug('[RTL Manager] Transferring settings from "new" to', newChatId);
-      await chatRTLStorage.setChatSettings(newChatId, tempSettings);
+    // Transfer Claude settings if on Claude.ai
+    if (isClaude()) {
+      const tempClaudeSettings = await claudeChatStorage.getChatSettings('new');
 
-      // Clear the "new" temp key so next time /new starts fresh
-      await chatRTLStorage.resetChatSettings('new');
+      // Only transfer if temp settings have non-default values
+      if (tempClaudeSettings.isRTL || tempClaudeSettings.isChatInputRTL || tempClaudeSettings.isMainContentRTL) {
+        console.debug('[RTL Manager] Transferring Claude settings from "new" to', newChatId);
+        await claudeChatStorage.setChatSettings(newChatId, tempClaudeSettings);
+
+        // Clear the "new" temp key so next time /new starts fresh
+        await claudeChatStorage.resetChatSettings('new');
+      }
+    }
+
+    // Transfer ChatGPT settings if on ChatGPT
+    if (isChatGPT()) {
+      const tempChatGPTSettings = await chatgptChatStorage.getChatSettings('new');
+
+      // Only transfer if temp settings have non-default values
+      if (tempChatGPTSettings.isChatGPTKatexRTL || tempChatGPTSettings.isChatGPTInputRTL) {
+        console.debug('[RTL Manager] Transferring ChatGPT settings from "new" to', newChatId);
+        await chatgptChatStorage.setChatSettings(newChatId, tempChatGPTSettings);
+
+        // Clear the "new" temp key so next time home page starts fresh
+        await chatgptChatStorage.resetChatSettings('new');
+      }
     }
   } catch (error) {
     console.error('[RTL Manager] Error transferring settings:', error);
@@ -356,301 +143,77 @@ export const transferNewChatSettings = async (newChatId: string): Promise<void> 
 };
 
 /**
- * Toggles side panel RTL for the current chat and saves to storage
+ * Toggles side panel RTL for the current chat and saves to storage (Claude.ai only)
  */
 export const toggleRTL = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) {
-    console.debug('[RTL Manager] No valid context for RTL toggle');
+  if (!isClaude()) {
+    console.debug('[RTL Manager] toggleRTL only works on Claude.ai');
     return false;
   }
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const currentSettings = await chatRTLStorage.getChatSettings(chatId);
-    const newRTLState = !currentSettings.isRTL;
-
-    // Save to storage
-    await chatRTLStorage.setChatSettings(chatId, {
-      isRTL: newRTLState,
-      direction: newRTLState ? 'rtl' : 'ltr',
-    });
-
-    // Apply immediately
-    applyRTL(newRTLState);
-
-    return newRTLState;
-  } catch (error) {
-    console.error('[RTL Manager] Error toggling side panel RTL:', error);
-    return false;
-  }
+  return toggleClaudeRTL();
 };
 
 /**
- * Toggles chat input RTL for the current chat and saves to storage
+ * Toggles chat input RTL for the current chat and saves to storage (Claude.ai only)
  */
 export const toggleChatInputRTL = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) {
-    console.debug('[RTL Manager] No valid context for chat input RTL toggle');
+  if (!isClaude()) {
+    console.debug('[RTL Manager] toggleChatInputRTL only works on Claude.ai');
     return false;
   }
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const currentSettings = await chatRTLStorage.getChatSettings(chatId);
-    const newRTLState = !currentSettings.isChatInputRTL;
-
-    // Save to storage
-    await chatRTLStorage.setChatSettings(chatId, {
-      isChatInputRTL: newRTLState,
-    });
-
-    // Apply immediately
-    applyChatInputRTL(newRTLState);
-
-    return newRTLState;
-  } catch (error) {
-    console.error('[RTL Manager] Error toggling chat input RTL:', error);
-    return false;
-  }
+  return toggleClaudeChatInputRTL();
 };
 
 /**
- * Toggles main content RTL for the current chat and saves to storage
+ * Toggles main content RTL for the current chat and saves to storage (Claude.ai only)
  */
 export const toggleMainContentRTL = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) {
-    console.debug('[RTL Manager] No valid context for main content RTL toggle');
+  if (!isClaude()) {
+    console.debug('[RTL Manager] toggleMainContentRTL only works on Claude.ai');
     return false;
   }
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const currentSettings = await chatRTLStorage.getChatSettings(chatId);
-    const newRTLState = !currentSettings.isMainContentRTL;
-
-    // Save to storage
-    await chatRTLStorage.setChatSettings(chatId, {
-      isMainContentRTL: newRTLState,
-    });
-
-    // Apply immediately
-    applyMainContentRTL(newRTLState);
-
-    return newRTLState;
-  } catch (error) {
-    console.error('[RTL Manager] Error toggling main content RTL:', error);
-    return false;
-  }
+  return toggleClaudeMainContentRTL();
 };
 
 /**
- * Toggles ChatGPT KaTeX RTL styling for the current chat and saves to storage
+ * Toggles ChatGPT KaTeX RTL styling for the current chat and saves to storage (ChatGPT only)
  */
 export const toggleChatGPTKatexRTL = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) {
-    console.debug('[RTL Manager] No valid context for ChatGPT KaTeX RTL toggle');
+  if (!isChatGPT()) {
+    console.debug('[RTL Manager] toggleChatGPTKatexRTL only works on ChatGPT');
     return false;
   }
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const currentSettings = await chatRTLStorage.getChatSettings(chatId);
-    const newRTLState = !currentSettings.isChatGPTKatexRTL;
-
-    // Save to storage
-    await chatRTLStorage.setChatSettings(chatId, {
-      isChatGPTKatexRTL: newRTLState,
-    });
-
-    // Apply immediately
-    applyChatGPTKatexStyle(newRTLState);
-
-    return newRTLState;
-  } catch (error) {
-    console.error('[RTL Manager] Error toggling ChatGPT KaTeX RTL:', error);
-    return false;
-  }
+  return toggleChatGPTKatex();
 };
 
 /**
- * Toggles ChatGPT Input RTL direction for the current chat and saves to storage
+ * Toggles ChatGPT Input RTL direction for the current chat and saves to storage (ChatGPT only)
  */
 export const toggleChatGPTInputRTL = async (): Promise<boolean> => {
-  const chatId = getEffectiveChatId();
-  if (!chatId) {
-    console.debug('[RTL Manager] No valid context for ChatGPT Input RTL toggle');
+  if (!isChatGPT()) {
+    console.debug('[RTL Manager] toggleChatGPTInputRTL only works on ChatGPT');
     return false;
   }
-
-  try {
-    const { chatRTLStorage } = await import('@extension/storage');
-    const currentSettings = await chatRTLStorage.getChatSettings(chatId);
-    const newRTLState = !currentSettings.isChatGPTInputRTL;
-
-    // Save to storage
-    await chatRTLStorage.setChatSettings(chatId, {
-      isChatGPTInputRTL: newRTLState,
-    });
-
-    // Apply immediately
-    applyChatGPTInputRTL(newRTLState);
-
-    return newRTLState;
-  } catch (error) {
-    console.error('[RTL Manager] Error toggling ChatGPT Input RTL:', error);
-    return false;
-  }
+  return toggleChatGPTInput();
 };
 
 /**
- * Initializes RTL manager - applies saved state and watches for URL changes and DOM changes
+ * Initializes RTL manager - delegates to provider-specific initialization
  */
 export const initRTLManager = (): (() => void) => {
-  // ChatGPT-specific initialization
-  if (isChatGPT()) {
-    // Apply saved states on load
-    const applyChatGPTStates = async () => {
-      const chatId = getEffectiveChatId(); // Use getEffectiveChatId to handle "new" key
-      if (!chatId) {
-        console.debug('[RTL Manager] No effective chat ID for ChatGPT, skipping apply');
-        return;
-      }
+  const provider = getCurrentProvider();
 
-      const isKatexRTL = await getCurrentChatGPTKatexRTLState();
-      const isInputRTL = await getCurrentChatGPTInputRTLState();
-
-      applyChatGPTKatexStyle(isKatexRTL);
-      applyChatGPTInputRTL(isInputRTL);
-    };
-
-    // Initial apply
-    applyChatGPTStates();
-
-    // Watch for URL changes and DOM changes to reapply on navigation
-    let lastUrl = location.href;
-    let lastInputElement: HTMLElement | null = null;
-
-    const observer = new MutationObserver(async () => {
-      const currentUrl = location.href;
-      const currentInputElement = findChatGPTInput();
-
-      // Reapply on URL change
-      if (currentUrl !== lastUrl) {
-        lastUrl = currentUrl;
-        await applyChatGPTStates();
-      }
-
-      // Reapply if input element changed
-      if (currentInputElement && currentInputElement !== lastInputElement) {
-        lastInputElement = currentInputElement;
-        const chatId = getEffectiveChatId(); // Use getEffectiveChatId to handle "new" key
-        if (chatId) {
-          const isInputRTL = await getCurrentChatGPTInputRTLState();
-          applyChatGPTInputRTL(isInputRTL);
-        }
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      observer.disconnect();
-    };
+  if (provider === 'claude') {
+    return initClaudeRTLManager();
   }
 
-  // Only initialize Claude.ai logic on Claude.ai
-  if (!isClaude()) {
-    return () => {}; // Return no-op cleanup function
+  if (provider === 'chatgpt') {
+    return initChatGPTRTLManager();
   }
 
-  let currentChatId: string | null = null;
-  let lastSidePanelElement: HTMLElement | null = null;
-  let lastChatInputElement: HTMLElement | null = null;
-  let lastMainContentElement: HTMLElement | null = null;
-  let lastUrl = location.href;
-
-  // Apply RTL state for current chat (side panel, chat input, and main content)
-  const applyCurrentChatRTL = async () => {
-    const chatId = getCurrentChatId();
-    if (!chatId) return;
-
-    // Check if chat changed
-    const chatChanged = chatId !== currentChatId;
-    if (chatChanged) {
-      currentChatId = chatId;
-    }
-
-    // Handle side panel RTL
-    const sidePanelContent = findSidePanelContent();
-    if (sidePanelContent) {
-      const elementChanged = sidePanelContent !== lastSidePanelElement;
-      const isRTL = await getCurrentRTLState();
-      const needsReapply = elementChanged || sidePanelContent.style.direction !== (isRTL ? 'rtl' : 'ltr');
-
-      if (needsReapply) {
-        lastSidePanelElement = sidePanelContent;
-        applyRTL(isRTL);
-      }
-    }
-
-    // Handle chat input RTL
-    const chatInput = findChatInput();
-    if (chatInput) {
-      const elementChanged = chatInput !== lastChatInputElement;
-      const isChatInputRTL = await getCurrentChatInputRTLState();
-      const needsReapply = elementChanged || chatInput.style.direction !== (isChatInputRTL ? 'rtl' : 'ltr');
-
-      if (needsReapply) {
-        lastChatInputElement = chatInput;
-        applyChatInputRTL(isChatInputRTL);
-      }
-    }
-
-    // Handle main content RTL
-    const mainContent = findMainContent();
-    if (mainContent) {
-      const elementChanged = mainContent !== lastMainContentElement;
-      const isMainContentRTL = await getCurrentMainContentRTLState();
-      const needsReapply = elementChanged || mainContent.style.direction !== (isMainContentRTL ? 'rtl' : 'ltr');
-
-      if (needsReapply) {
-        lastMainContentElement = mainContent;
-        applyMainContentRTL(isMainContentRTL);
-      }
-    }
-  };
-
-  // Inject global CSS to force katex to always be LTR
-  injectKatexLTRStyle();
-
-  // Initial apply
-  applyCurrentChatRTL();
-
-  // Watch for URL changes and DOM changes
-  const observer = new MutationObserver(() => {
-    const currentUrl = location.href;
-
-    // Always check if RTL needs to be reapplied (handles both URL changes and DOM recreation)
-    if (currentUrl !== lastUrl) {
-      lastUrl = currentUrl;
-      lastSidePanelElement = null; // Reset element tracking on navigation
-      lastChatInputElement = null;
-      lastMainContentElement = null;
-    }
-
-    applyCurrentChatRTL();
-  });
-
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // Return cleanup function
-  return () => {
-    observer.disconnect();
-  };
+  // Unknown provider - return no-op cleanup function
+  console.debug('[RTL Manager] Unknown provider, no RTL manager initialized');
+  return () => {};
 };
 
 /**
@@ -658,15 +221,36 @@ export const initRTLManager = (): (() => void) => {
  */
 export const reapplyChatGPTStyles = async (): Promise<void> => {
   if (!isChatGPT()) return;
-
-  const chatId = getEffectiveChatId();
-  if (!chatId) return;
-
-  const isKatexRTL = await getCurrentChatGPTKatexRTLState();
-  const isInputRTL = await getCurrentChatGPTInputRTLState();
-
-  applyChatGPTKatexStyle(isKatexRTL);
-  applyChatGPTInputRTL(isInputRTL);
+  return reapplyChatGPT();
 };
 
-export { applyRTL, applyChatInputRTL, applyMainContentRTL, applyChatGPTKatexStyle, applyChatGPTInputRTL };
+// Re-export apply functions for backward compatibility
+export const applyRTL = (enable: boolean): void => {
+  if (isClaude()) {
+    applyClaudeRTL(enable);
+  }
+};
+
+export const applyChatInputRTL = (enable: boolean): void => {
+  if (isClaude()) {
+    applyClaudeChatInputRTL(enable);
+  }
+};
+
+export const applyMainContentRTL = (enable: boolean): void => {
+  if (isClaude()) {
+    applyClaudeMainContentRTL(enable);
+  }
+};
+
+export const applyChatGPTKatexStyle = (enable: boolean): void => {
+  if (isChatGPT()) {
+    applyChatGPTKatex(enable);
+  }
+};
+
+export const applyChatGPTInputRTL = (enable: boolean): void => {
+  if (isChatGPT()) {
+    applyChatGPTInput(enable);
+  }
+};
