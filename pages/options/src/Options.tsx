@@ -7,9 +7,9 @@ const Options = () => (
     className={cn('flex min-h-screen items-center justify-center p-8', 'bg-gradient-to-br from-blue-50 to-indigo-100')}>
     <div className={cn('w-full max-w-2xl rounded-2xl p-12 shadow-2xl', 'bg-white')}>
       <div className="mb-8 text-center">
-        <h1 className={cn('mb-4 text-4xl font-bold', 'text-gray-900')}>Claude.ai RTL Support</h1>
+        <h1 className={cn('mb-4 text-4xl font-bold', 'text-gray-900')}>AI Chat RTL Support</h1>
         <p className={cn('text-lg leading-relaxed', 'text-gray-600')}>
-          Chrome extension that adds comprehensive right-to-left text direction support to Claude.ai
+          Browser extension that adds comprehensive right-to-left text direction support to AI chat interfaces
         </p>
       </div>
 

@@ -1,9 +1,9 @@
 <div align="center">
-  <img src="icon.png" alt="Claude.ai RTL Support Logo" width="128" height="128">
+  <img src="icon.png" alt="AI Chat RTL Support Logo" width="128" height="128">
 
-  # Claude.ai RTL Support
+  # AI Chat RTL Support
 
-  A Chrome extension that adds comprehensive right-to-left (RTL) text direction support to Claude.ai. Perfect for users who work with RTL languages like Arabic, Hebrew, Persian, and Urdu.
+  A browser extension that adds comprehensive right-to-left (RTL) text direction support to AI chat interfaces. Currently supports Claude.ai with more platforms coming soon. Perfect for users who work with RTL languages like Arabic, Hebrew, Persian, and Urdu.
 </div>
 
 ## ✨ Features
@@ -12,9 +12,10 @@
   - Chat input field
   - Main conversation content
   - Side panel
-- **Per-Chat Settings**: RTL preferences are saved per conversation using UUID storage
+- **KaTeX Support**: Mathematical expressions automatically preserved in LTR direction
+- **Per-Chat Settings**: RTL preferences are saved per conversation with automatic UUID storage
 - **Configurable Panel Position**: Place the control panel at top, right, bottom, or left of the screen
-- **Works Everywhere**: Functions on both the `/new` page and in active chats
+- **Works Everywhere**: Functions on `/new`, `/project/*` pages and in active chats
 - **Modern UI**: Beautiful toggle switches with smooth animations
 - **Persistent Storage**: Settings are automatically saved and restored across sessions
 - **Smart Detection**: Automatically detects chat changes and applies saved settings
@@ -53,4 +54,8 @@ Created by [Anatoly Tarnavsky](https://anatoly.dev)
 
 ## 🛠️ Built With
 
-This extension is built using the excellent [Chrome Extension Boilerplate with React + Vite](https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite) by [Jonghakseo](https://jonghakseo.github.io/).
+- React + TypeScript
+- Vite
+- Turborepo (monorepo architecture)
+- Chrome Extension Manifest V3
+- Tailwind CSS

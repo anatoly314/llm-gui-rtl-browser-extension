@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Chrome/Firefox extension that adds comprehensive right-to-left (RTL) text direction support to Claude.ai. Built on a Turborepo monorepo with React, TypeScript, Vite, and pnpm. The extension allows users to independently control RTL direction for chat input, main conversation content, and side panel on a per-conversation basis.
+This is a browser extension that adds comprehensive right-to-left (RTL) text direction support to AI chat interfaces. Currently supports Claude.ai with plans to support additional platforms. Built on a Turborepo monorepo with React, TypeScript, Vite, and pnpm. The extension allows users to independently control RTL direction for chat input, main conversation content, and side panel on a per-conversation basis. Features KaTeX mathematical expression preservation in LTR direction.
 
 ## Commands
 
@@ -67,7 +67,8 @@ Key functions:
 - `findSidePanelContent()` - Locates side panel by traversing from `.cursor-col-resize` anchor
 - `findChatInput()` - Finds chat input via `[data-testid="chat-input"]`
 - `findMainContent()` - Traverses up from chat input to sticky element, then selects previous sibling
-- `getEffectiveChatId()` - Returns actual chat UUID or "new" for `/new` page
+- `injectKatexLTRStyle()` - Injects global CSS to force KaTeX math elements to always render in LTR with proper unicode-bidi
+- `getEffectiveChatId()` - Returns actual chat UUID or "new" for `/new` and `/project/*` pages
 - `toggleRTL()` / `toggleChatInputRTL()` / `toggleMainContentRTL()` - Toggle and persist RTL state
 - `initRTLManager()` - Starts MutationObserver to reapply RTL on DOM changes and URL navigation
 - `transferNewChatSettings()` - Transfers settings from "new" temp key to actual chat UUID
@@ -96,10 +97,13 @@ Key functions:
 ### Key Patterns
 
 **"new" Chat Handling**:
-When user is on `/new` page, settings are stored with key "new". When they send first message and URL changes to `/chat/[uuid]`, settings are transferred from "new" to the actual UUID and "new" key is cleared. This ensures:
-- Settings work immediately on `/new` page
+When user is on `/new` or `/project/*` pages, settings are stored with key "new". When they send first message and URL changes to `/chat/[uuid]`, settings are transferred from "new" to the actual UUID and "new" key is cleared. This ensures:
+- Settings work immediately on `/new` and `/project/*` pages
 - Settings persist when chat gets a real UUID
 - Fresh start every time user navigates to `/new`
+
+**KaTeX LTR Preservation**:
+Mathematical expressions rendered by KaTeX are automatically kept in LTR direction even when main content is RTL. This is achieved by injecting global CSS that targets `.katex` and all its children with `direction: ltr !important` and `unicode-bidi: embed !important`. The style is injected once on initialization.
 
 **DOM Reapplication Strategy**:
 MutationObserver watches for:
@@ -110,6 +114,7 @@ MutationObserver watches for:
 **Control Panel Visibility**:
 Panel only shows when `shouldShowPanel` is true, which requires:
 - Current path is `/new` OR
+- Current path starts with `/project/` OR
 - A valid chat UUID exists in URL
 This prevents panel from appearing on landing pages or other non-chat routes.
 
@@ -121,13 +126,13 @@ Built on Turborepo with shared packages:
 - `shared/` - RTL manager, chat utilities, hooks, common components
 - `storage/` - Chrome storage API wrappers (chat RTL storage, position storage)
 - `hmr/` - Custom HMR plugin with WebSocket-based rebuild notifications
-- `i18n/` - Type-safe internationalization with Chrome i18n API
-- `ui/` - Shared UI components (Toast, LoadingSpinner, etc.) and Tailwind utilities
+- `ui/` - Shared UI components (ErrorDisplay, LoadingSpinner, etc.) and Tailwind utilities
 - `vite-config/` - Shared Vite configurations
 - `tsconfig/` - Shared TypeScript configurations
 - `tailwind-config/` - Shared Tailwind configuration
 - `dev-utils/` - Development utilities (manifest parser, logger)
 - `zipper/` - Extension packaging utility
+- `env/` - Environment variable management
 
 **chrome-extension/**:
 - `manifest.ts` - Generates manifest.json (Manifest V3) with Claude.ai permissions
