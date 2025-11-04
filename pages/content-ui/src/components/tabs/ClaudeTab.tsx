@@ -1,10 +1,10 @@
 import {
-  getCurrentRTLState,
-  getCurrentChatInputRTLState,
-  getCurrentMainContentRTLState,
-  toggleRTL,
-  toggleChatInputRTL,
-  toggleMainContentRTL,
+  getCurrentClaudeRTLState,
+  getCurrentClaudeChatInputRTLState,
+  getCurrentClaudeMainContentRTLState,
+  toggleClaudeRTL,
+  toggleClaudeChatInputRTL,
+  toggleClaudeMainContentRTL,
 } from '@extension/shared';
 import { claudeChatStorage } from '@extension/storage';
 import { useState, useEffect } from 'react';
@@ -58,9 +58,9 @@ export const ClaudeTab = () => {
   // Load initial states
   useEffect(() => {
     const loadStates = async () => {
-      const rtl = await getCurrentRTLState();
-      const chatInput = await getCurrentChatInputRTLState();
-      const mainContent = await getCurrentMainContentRTLState();
+      const rtl = await getCurrentClaudeRTLState();
+      const chatInput = await getCurrentClaudeChatInputRTLState();
+      const mainContent = await getCurrentClaudeMainContentRTLState();
 
       setIsRTL(rtl);
       setIsChatInputRTL(chatInput);
@@ -80,17 +80,17 @@ export const ClaudeTab = () => {
   }, []);
 
   const handleToggleRTL = async () => {
-    const newState = await toggleRTL();
+    const newState = await toggleClaudeRTL();
     setIsRTL(newState);
   };
 
   const handleToggleChatInputRTL = async () => {
-    const newState = await toggleChatInputRTL();
+    const newState = await toggleClaudeChatInputRTL();
     setIsChatInputRTL(newState);
   };
 
   const handleToggleMainContentRTL = async () => {
-    const newState = await toggleMainContentRTL();
+    const newState = await toggleClaudeMainContentRTL();
     setIsMainContentRTL(newState);
   };
 

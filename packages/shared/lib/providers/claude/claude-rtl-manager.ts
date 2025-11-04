@@ -60,7 +60,7 @@ const findMainContent = (): HTMLElement | null => {
 /**
  * Applies or removes RTL direction to the side panel content
  */
-const applyRTL = (enable: boolean): void => {
+const applyClaudeRTL = (enable: boolean): void => {
   const sidePanelContent = findSidePanelContent();
   if (!sidePanelContent) {
     console.debug('[Claude RTL Manager] Side panel content not found');
@@ -77,7 +77,7 @@ const applyRTL = (enable: boolean): void => {
 /**
  * Applies or removes RTL direction to the chat input
  */
-const applyChatInputRTL = (enable: boolean): void => {
+const applyClaudeChatInputRTL = (enable: boolean): void => {
   const chatInput = findChatInput();
   if (!chatInput) {
     console.debug('[Claude RTL Manager] Chat input not found');
@@ -94,7 +94,7 @@ const applyChatInputRTL = (enable: boolean): void => {
 /**
  * Applies or removes RTL direction to the main content
  */
-const applyMainContentRTL = (enable: boolean): void => {
+const applyClaudeMainContentRTL = (enable: boolean): void => {
   const mainContent = findMainContent();
   if (!mainContent) {
     console.debug('[Claude RTL Manager] Main content not found');
@@ -160,7 +160,7 @@ const getEffectiveChatId = (): string => {
 /**
  * Gets the current side panel RTL state from storage for the current chat
  */
-export const getCurrentRTLState = async (): Promise<boolean> => {
+export const getCurrentClaudeRTLState = async (): Promise<boolean> => {
   const chatId = getEffectiveChatId();
   if (!chatId) return false;
 
@@ -177,7 +177,7 @@ export const getCurrentRTLState = async (): Promise<boolean> => {
 /**
  * Gets the current chat input RTL state from storage for the current chat
  */
-export const getCurrentChatInputRTLState = async (): Promise<boolean> => {
+export const getCurrentClaudeChatInputRTLState = async (): Promise<boolean> => {
   const chatId = getEffectiveChatId();
   if (!chatId) return false;
 
@@ -194,7 +194,7 @@ export const getCurrentChatInputRTLState = async (): Promise<boolean> => {
 /**
  * Gets the current main content RTL state from storage for the current chat
  */
-export const getCurrentMainContentRTLState = async (): Promise<boolean> => {
+export const getCurrentClaudeMainContentRTLState = async (): Promise<boolean> => {
   const chatId = getEffectiveChatId();
   if (!chatId) return false;
 
@@ -211,7 +211,7 @@ export const getCurrentMainContentRTLState = async (): Promise<boolean> => {
 /**
  * Toggles side panel RTL for the current chat and saves to storage
  */
-export const toggleRTL = async (): Promise<boolean> => {
+export const toggleClaudeRTL = async (): Promise<boolean> => {
   const chatId = getEffectiveChatId();
   if (!chatId) {
     console.debug('[Claude RTL Manager] No valid context for RTL toggle');
@@ -230,7 +230,7 @@ export const toggleRTL = async (): Promise<boolean> => {
     });
 
     // Apply immediately
-    applyRTL(newRTLState);
+    applyClaudeRTL(newRTLState);
 
     return newRTLState;
   } catch (error) {
@@ -242,7 +242,7 @@ export const toggleRTL = async (): Promise<boolean> => {
 /**
  * Toggles chat input RTL for the current chat and saves to storage
  */
-export const toggleChatInputRTL = async (): Promise<boolean> => {
+export const toggleClaudeChatInputRTL = async (): Promise<boolean> => {
   const chatId = getEffectiveChatId();
   if (!chatId) {
     console.debug('[Claude RTL Manager] No valid context for chat input RTL toggle');
@@ -260,7 +260,7 @@ export const toggleChatInputRTL = async (): Promise<boolean> => {
     });
 
     // Apply immediately
-    applyChatInputRTL(newRTLState);
+    applyClaudeChatInputRTL(newRTLState);
 
     return newRTLState;
   } catch (error) {
@@ -272,7 +272,7 @@ export const toggleChatInputRTL = async (): Promise<boolean> => {
 /**
  * Toggles main content RTL for the current chat and saves to storage
  */
-export const toggleMainContentRTL = async (): Promise<boolean> => {
+export const toggleClaudeMainContentRTL = async (): Promise<boolean> => {
   const chatId = getEffectiveChatId();
   if (!chatId) {
     console.debug('[Claude RTL Manager] No valid context for main content RTL toggle');
@@ -290,7 +290,7 @@ export const toggleMainContentRTL = async (): Promise<boolean> => {
     });
 
     // Apply immediately
-    applyMainContentRTL(newRTLState);
+    applyClaudeMainContentRTL(newRTLState);
 
     return newRTLState;
   } catch (error) {
@@ -324,12 +324,12 @@ export const initClaudeRTLManager = (): (() => void) => {
     const sidePanelContent = findSidePanelContent();
     if (sidePanelContent) {
       const elementChanged = sidePanelContent !== lastSidePanelElement;
-      const isRTL = await getCurrentRTLState();
+      const isRTL = await getCurrentClaudeRTLState();
       const needsReapply = elementChanged || sidePanelContent.style.direction !== (isRTL ? 'rtl' : 'ltr');
 
       if (needsReapply) {
         lastSidePanelElement = sidePanelContent;
-        applyRTL(isRTL);
+        applyClaudeRTL(isRTL);
       }
     }
 
@@ -337,12 +337,12 @@ export const initClaudeRTLManager = (): (() => void) => {
     const chatInput = findChatInput();
     if (chatInput) {
       const elementChanged = chatInput !== lastChatInputElement;
-      const isChatInputRTL = await getCurrentChatInputRTLState();
+      const isChatInputRTL = await getCurrentClaudeChatInputRTLState();
       const needsReapply = elementChanged || chatInput.style.direction !== (isChatInputRTL ? 'rtl' : 'ltr');
 
       if (needsReapply) {
         lastChatInputElement = chatInput;
-        applyChatInputRTL(isChatInputRTL);
+        applyClaudeChatInputRTL(isChatInputRTL);
       }
     }
 
@@ -350,12 +350,12 @@ export const initClaudeRTLManager = (): (() => void) => {
     const mainContent = findMainContent();
     if (mainContent) {
       const elementChanged = mainContent !== lastMainContentElement;
-      const isMainContentRTL = await getCurrentMainContentRTLState();
+      const isMainContentRTL = await getCurrentClaudeMainContentRTLState();
       const needsReapply = elementChanged || mainContent.style.direction !== (isMainContentRTL ? 'rtl' : 'ltr');
 
       if (needsReapply) {
         lastMainContentElement = mainContent;
-        applyMainContentRTL(isMainContentRTL);
+        applyClaudeMainContentRTL(isMainContentRTL);
       }
     }
   };
@@ -389,4 +389,4 @@ export const initClaudeRTLManager = (): (() => void) => {
   };
 };
 
-export { applyRTL, applyChatInputRTL, applyMainContentRTL };
+export { applyClaudeRTL, applyClaudeChatInputRTL, applyClaudeMainContentRTL };

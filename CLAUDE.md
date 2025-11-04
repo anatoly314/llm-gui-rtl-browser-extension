@@ -95,7 +95,7 @@ This extension follows a **provider-based architecture** with strict separation 
 
 ### Provider System
 
-The extension uses a modular provider architecture where each AI platform has its own self-contained module.
+The extension uses a modular provider architecture where each AI platform has its own self-contained module. Functions follow a consistent naming pattern with provider prefixes (e.g., `toggleClaudeRTL`, `toggleChatGPTKatexRTL`) to avoid naming conflicts and make imports explicit.
 
 #### Provider Detection
 
@@ -112,24 +112,24 @@ Central detection logic for identifying which AI platform is currently active:
 
 Self-contained module handling all Claude.ai RTL functionality:
 
-DOM detection functions:
+DOM detection functions (internal):
 - `findSidePanelContent()` - Locates side panel by traversing from `.cursor-col-resize` anchor
 - `findChatInput()` - Finds chat input via `[data-testid="chat-input"]`
 - `findMainContent()` - Traverses up from chat input to sticky element, then selects previous sibling
 
 RTL application functions:
-- `applyRTL()` - Apply/remove RTL to side panel
-- `applyChatInputRTL()` - Apply/remove RTL to chat input
-- `applyMainContentRTL()` - Apply/remove RTL to main content
+- `applyClaudeRTL()` - Apply/remove RTL to side panel
+- `applyClaudeChatInputRTL()` - Apply/remove RTL to chat input
+- `applyClaudeMainContentRTL()` - Apply/remove RTL to main content
 - `injectKatexLTRStyle()` - Injects global CSS to force KaTeX math elements to always render in LTR
 
-State management functions:
-- `getCurrentRTLState()` - Get side panel RTL state from storage
-- `getCurrentChatInputRTLState()` - Get chat input RTL state from storage
-- `getCurrentMainContentRTLState()` - Get main content RTL state from storage
-- `toggleRTL()` - Toggle side panel RTL and save to storage
-- `toggleChatInputRTL()` - Toggle chat input RTL and save to storage
-- `toggleMainContentRTL()` - Toggle main content RTL and save to storage
+State management functions (exported):
+- `getCurrentClaudeRTLState()` - Get side panel RTL state from storage
+- `getCurrentClaudeChatInputRTLState()` - Get chat input RTL state from storage
+- `getCurrentClaudeMainContentRTLState()` - Get main content RTL state from storage
+- `toggleClaudeRTL()` - Toggle side panel RTL and save to storage
+- `toggleClaudeChatInputRTL()` - Toggle chat input RTL and save to storage
+- `toggleClaudeMainContentRTL()` - Toggle main content RTL and save to storage
 - `initClaudeRTLManager()` - Initialize MutationObserver to watch for URL and DOM changes
 
 #### ChatGPT Provider
@@ -153,22 +153,21 @@ State management functions:
 - `initChatGPTRTLManager()` - Initialize MutationObserver to watch for URL and DOM changes
 - `reapplyChatGPTStyles()` - Reapply all styles (useful after settings transfer)
 
-#### RTL Manager Orchestrator
+#### RTL Initialization
 
-**`packages/shared/lib/utils/rtl-manager.ts`**
+**`packages/shared/lib/utils/rtl-init.ts`**
 
-Thin orchestration layer that delegates to provider-specific managers:
+Thin orchestration layer for initialization and settings transfer:
 - Detects current provider using `getCurrentProvider()`
-- Routes function calls to appropriate provider module
-- Provides backward-compatible exports for legacy code
+- Delegates initialization to appropriate provider module
 - Handles settings transfer between "new" chat and actual chat UUID
-- Guards all provider-specific operations with platform checks
+- Guards provider-specific operations with platform checks
 
-Key orchestrator functions:
+Key functions:
 - `initRTLManager()` - Delegates to `initClaudeRTLManager()` or `initChatGPTRTLManager()` based on provider
 - `transferNewChatSettings()` - Transfers settings from "new" temp key to actual UUID (provider-aware)
 - `clearNewChatSettings()` - Clears temp settings from both providers
-- Various toggle/get functions that route to correct provider
+- `reapplyChatGPTStyles()` - Reapplies ChatGPT styles after settings transfer
 
 ### Storage System
 
