@@ -14,6 +14,7 @@ import {
   getCurrentChatId,
   transferNewChatSettings,
   clearNewChatSettings,
+  reapplyChatGPTStyles,
 } from '@extension/shared';
 import { rtlPositionStorage } from '@extension/storage';
 import { Toast } from '@extension/ui';
@@ -87,8 +88,9 @@ export default function App() {
     // ChatGPT checks
     const isChatGPT = hostname === 'chatgpt.com' || hostname === 'chat.openai.com';
     const isChatGPTConversation = isChatGPT && path.startsWith('/c/');
+    const isChatGPTHome = isChatGPT && path === '/';
 
-    setShouldShowPanel(isNewPage || isProjectPage || hasChatId || isChatGPTConversation);
+    setShouldShowPanel(isNewPage || isProjectPage || hasChatId || isChatGPTConversation || isChatGPTHome);
   };
 
   // Auto-select tab based on current website
@@ -118,9 +120,12 @@ export default function App() {
 
     // Load initial RTL states and check visibility
     const initializeStates = async () => {
-      // If starting on /new or /project/* page, clear any previous "new" settings
+      // If starting on /new, /project/*, or ChatGPT home page, clear any previous "new" settings
       const path = window.location.pathname;
-      if (path === '/new' || path.startsWith('/project/')) {
+      const hostname = window.location.hostname;
+      const isChatGPTHome = (hostname === 'chatgpt.com' || hostname === 'chat.openai.com') && path === '/';
+
+      if (path === '/new' || path.startsWith('/project/') || isChatGPTHome) {
         await clearNewChatSettings();
       }
       loadRTLStates();
@@ -134,6 +139,7 @@ export default function App() {
     let lastChatId = getCurrentChatId();
     let lastPath = window.location.pathname;
     let lastHostname = window.location.hostname;
+
     const checkChanges = async () => {
       const currentChatId = getCurrentChatId();
       const currentPath = window.location.pathname;
@@ -141,10 +147,16 @@ export default function App() {
 
       // Check if chat changed
       if (currentChatId !== lastChatId) {
-        // If transitioning from /new or /project/* to a chat with UUID, transfer settings FIRST
+        // If transitioning from /new, /project/*, or ChatGPT home to a chat with UUID, transfer settings FIRST
         const wasOnNewOrProject = lastPath === '/new' || lastPath.startsWith('/project/');
-        if (!lastChatId && currentChatId && wasOnNewOrProject) {
+        const wasOnChatGPTHome =
+          (lastHostname === 'chatgpt.com' || lastHostname === 'chat.openai.com') && lastPath === '/';
+
+        if (!lastChatId && currentChatId && (wasOnNewOrProject || wasOnChatGPTHome)) {
           await transferNewChatSettings(currentChatId);
+
+          // Immediately reapply styles after transfer (fixes race condition with RTL Manager)
+          await reapplyChatGPTStyles();
         }
 
         lastChatId = currentChatId;
@@ -153,10 +165,16 @@ export default function App() {
 
       // Check if path changed (affects visibility)
       if (currentPath !== lastPath) {
-        // If navigating TO /new or /project/* page, clear any previous "new" settings
+        // If navigating TO /new, /project/*, or ChatGPT home page, clear any previous "new" settings
         const isNewOrProject = currentPath === '/new' || currentPath.startsWith('/project/');
-        const wasNotNewOrProject = lastPath !== '/new' && !lastPath.startsWith('/project/');
-        if (isNewOrProject && wasNotNewOrProject) {
+        const isChatGPTHome =
+          (currentHostname === 'chatgpt.com' || currentHostname === 'chat.openai.com') && currentPath === '/';
+        const wasNotNewOrProjectOrHome =
+          lastPath !== '/new' &&
+          !lastPath.startsWith('/project/') &&
+          !(lastHostname === 'chatgpt.com' || lastHostname === 'chat.openai.com' ? lastPath === '/' : false);
+
+        if ((isNewOrProject || isChatGPTHome) && wasNotNewOrProjectOrHome) {
           await clearNewChatSettings();
           loadRTLStates(); // Reload to show default states
         }

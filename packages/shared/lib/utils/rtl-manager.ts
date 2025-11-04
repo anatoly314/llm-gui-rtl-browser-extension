@@ -210,14 +210,21 @@ const applyMainContentRTL = (enable: boolean): void => {
 };
 
 /**
- * Gets the effective chat ID - returns "new" for /new or /project/* pages, or actual UUID in chat
+ * Gets the effective chat ID - returns "new" for /new, /project/* pages, or ChatGPT home, or actual UUID in chat
  */
 const getEffectiveChatId = (): string => {
   const chatId = getCurrentChatId();
   if (chatId) return chatId;
-  // If on /new page or /project/* page, use special "new" key
+
   const path = window.location.pathname;
+  const hostname = window.location.hostname;
+
+  // If on Claude.ai /new page or /project/* page, use special "new" key
   if (path === '/new' || path.startsWith('/project/')) return 'new';
+
+  // If on ChatGPT home page, use special "new" key
+  if ((hostname === 'chatgpt.com' || hostname === 'chat.openai.com') && path === '/') return 'new';
+
   return '';
 };
 
@@ -329,7 +336,15 @@ export const transferNewChatSettings = async (newChatId: string): Promise<void> 
     const tempSettings = await chatRTLStorage.getChatSettings('new');
 
     // Only transfer if temp settings have non-default values
-    if (tempSettings.isRTL || tempSettings.isChatInputRTL || tempSettings.isMainContentRTL) {
+    // Check both Claude and ChatGPT specific settings
+    if (
+      tempSettings.isRTL ||
+      tempSettings.isChatInputRTL ||
+      tempSettings.isMainContentRTL ||
+      tempSettings.isChatGPTKatexRTL ||
+      tempSettings.isChatGPTInputRTL
+    ) {
+      console.debug('[RTL Manager] Transferring settings from "new" to', newChatId);
       await chatRTLStorage.setChatSettings(newChatId, tempSettings);
 
       // Clear the "new" temp key so next time /new starts fresh
@@ -499,8 +514,11 @@ export const initRTLManager = (): (() => void) => {
   if (isChatGPT()) {
     // Apply saved states on load
     const applyChatGPTStates = async () => {
-      const chatId = getCurrentChatId();
-      if (!chatId) return;
+      const chatId = getEffectiveChatId(); // Use getEffectiveChatId to handle "new" key
+      if (!chatId) {
+        console.debug('[RTL Manager] No effective chat ID for ChatGPT, skipping apply');
+        return;
+      }
 
       const isKatexRTL = await getCurrentChatGPTKatexRTLState();
       const isInputRTL = await getCurrentChatGPTInputRTLState();
@@ -529,7 +547,7 @@ export const initRTLManager = (): (() => void) => {
       // Reapply if input element changed
       if (currentInputElement && currentInputElement !== lastInputElement) {
         lastInputElement = currentInputElement;
-        const chatId = getCurrentChatId();
+        const chatId = getEffectiveChatId(); // Use getEffectiveChatId to handle "new" key
         if (chatId) {
           const isInputRTL = await getCurrentChatGPTInputRTLState();
           applyChatGPTInputRTL(isInputRTL);
@@ -633,6 +651,22 @@ export const initRTLManager = (): (() => void) => {
   return () => {
     observer.disconnect();
   };
+};
+
+/**
+ * Reapplies all ChatGPT styles for the current chat (useful after settings transfer)
+ */
+export const reapplyChatGPTStyles = async (): Promise<void> => {
+  if (!isChatGPT()) return;
+
+  const chatId = getEffectiveChatId();
+  if (!chatId) return;
+
+  const isKatexRTL = await getCurrentChatGPTKatexRTLState();
+  const isInputRTL = await getCurrentChatGPTInputRTLState();
+
+  applyChatGPTKatexStyle(isKatexRTL);
+  applyChatGPTInputRTL(isInputRTL);
 };
 
 export { applyRTL, applyChatInputRTL, applyMainContentRTL, applyChatGPTKatexStyle, applyChatGPTInputRTL };
