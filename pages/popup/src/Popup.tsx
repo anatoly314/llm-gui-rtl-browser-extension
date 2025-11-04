@@ -10,7 +10,7 @@ const Popup = () => {
     <div className={cn('App', 'bg-slate-50')}>
       <header className={cn('App-header', 'text-gray-900')}>
         <h2 className="mb-1 text-xl font-bold">AI Chat RTL Support</h2>
-        <p className="mb-3 text-xs text-gray-600">Currently supports Claude.ai • More AI platforms coming soon</p>
+        <p className="mb-3 text-xs text-gray-600">Supports Claude.ai & ChatGPT</p>
         <p className="mb-4 max-w-md text-center text-sm">
           Comprehensive right-to-left text direction support with independent controls for chat input, main content, and
           side panel.
@@ -27,7 +27,24 @@ const Popup = () => {
             <li>Modern toggle switches with smooth animations</li>
           </ul>
         </div>
-        <p className="mt-auto pt-2 text-xs text-gray-400">v{version}</p>
+        <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+          <a
+            href="https://github.com/anatoly314/llm-gui-rtl-browser-extension"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 hover:underline">
+            GitHub
+          </a>
+          <span className="text-gray-300">•</span>
+          <a
+            href="https://anatoly.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 hover:underline">
+            Made by Anatoly
+          </a>
+        </div>
+        <p className="mt-2 pt-2 text-xs text-gray-400">v{version}</p>
       </header>
     </div>
   );

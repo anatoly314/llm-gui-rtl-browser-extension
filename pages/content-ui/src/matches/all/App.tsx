@@ -65,6 +65,8 @@ export default function App() {
   const [isChatGPTKatexRTL, setIsChatGPTKatexRTL] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [shouldShowPanel, setShouldShowPanel] = useState(false);
+  const [showTabWarning, setShowTabWarning] = useState(false);
+  const [currentPlatform, setCurrentPlatform] = useState<'claude' | 'chatgpt'>('claude');
   const storageData = useStorage(rtlPositionStorage);
   const position = storageData?.position || 'top';
 
@@ -91,8 +93,10 @@ export default function App() {
     const hostname = window.location.hostname;
     if (hostname === 'chatgpt.com' || hostname === 'chat.openai.com') {
       setActiveTab('chatgpt');
+      setCurrentPlatform('chatgpt');
     } else if (hostname === 'claude.ai') {
       setActiveTab('claude');
+      setCurrentPlatform('claude');
     }
   };
 
@@ -331,38 +335,41 @@ export default function App() {
     }
   };
 
-  const renderTabButton = (tab: TabType, label: string, disabled = false) => (
-    <button
-      onClick={() => !disabled && setActiveTab(tab)}
-      disabled={disabled}
-      style={{
-        flex: 1,
-        padding: '4px 8px',
-        border: 'none',
-        borderBottom: activeTab === tab ? '2px solid #3b82f6' : '2px solid transparent',
-        backgroundColor: activeTab === tab ? '#eff6ff' : 'transparent',
-        color: disabled ? '#9ca3af' : activeTab === tab ? '#1e40af' : '#374151',
-        fontSize: '12px',
-        fontWeight: activeTab === tab ? '600' : '500',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        transition: 'all 0.2s',
-        position: 'relative' as const,
-      }}>
-      {label}
-      {disabled && (
-        <span
-          style={{
-            display: 'block',
-            fontSize: '9px',
-            color: '#9ca3af',
-            fontWeight: '400',
-            marginTop: '1px',
-          }}>
-          Coming Soon
-        </span>
-      )}
-    </button>
-  );
+  const handleTabClick = (tab: TabType) => {
+    // Check if trying to click the wrong tab for current platform
+    if ((currentPlatform === 'claude' && tab === 'chatgpt') || (currentPlatform === 'chatgpt' && tab === 'claude')) {
+      setShowTabWarning(true);
+      setTimeout(() => setShowTabWarning(false), 2000);
+      return;
+    }
+    setActiveTab(tab);
+  };
+
+  const renderTabButton = (tab: TabType, label: string) => {
+    const isWrongPlatform =
+      (currentPlatform === 'claude' && tab === 'chatgpt') || (currentPlatform === 'chatgpt' && tab === 'claude');
+
+    return (
+      <button
+        onClick={() => handleTabClick(tab)}
+        style={{
+          flex: 1,
+          padding: '4px 8px',
+          border: 'none',
+          borderBottom: activeTab === tab ? '2px solid #3b82f6' : '2px solid transparent',
+          backgroundColor: activeTab === tab ? '#eff6ff' : 'transparent',
+          color: isWrongPlatform ? '#9ca3af' : activeTab === tab ? '#1e40af' : '#374151',
+          fontSize: '12px',
+          fontWeight: activeTab === tab ? '600' : '500',
+          cursor: isWrongPlatform ? 'not-allowed' : 'pointer',
+          transition: 'all 0.2s',
+          position: 'relative' as const,
+          opacity: isWrongPlatform ? 0.5 : 1,
+        }}>
+        {label}
+      </button>
+    );
+  };
 
   const renderClaudeContent = () => (
     <>
@@ -511,10 +518,10 @@ export default function App() {
             color: '#374151',
             marginBottom: '10px',
           }}>
-          KaTeX Math Direction
+          Fix KaTeX Math Expressions
         </div>
 
-        <ToggleSwitch checked={isChatGPTKatexRTL} onChange={handleToggleChatGPTKatexRTL} label="Enable RTL" />
+        <ToggleSwitch checked={isChatGPTKatexRTL} onChange={handleToggleChatGPTKatexRTL} label="Enable Fix" />
 
         <p
           style={{
@@ -523,8 +530,8 @@ export default function App() {
             color: '#6b7280',
           }}>
           {isChatGPTKatexRTL
-            ? 'KaTeX math expressions are displayed right-to-left'
-            : 'KaTeX math expressions are displayed left-to-right'}
+            ? 'Math expressions are forced to display left-to-right (fixes RTL issues)'
+            : 'Math expressions follow page direction (may break in RTL responses)'}
         </p>
       </div>
     </>
@@ -559,6 +566,24 @@ export default function App() {
               }}>
               RTL Settings
             </h2>
+
+            {/* Tab Warning Notification */}
+            {showTabWarning && (
+              <div
+                style={{
+                  marginTop: '8px',
+                  padding: '8px 12px',
+                  backgroundColor: '#fef3c7',
+                  border: '1px solid #fbbf24',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  color: '#92400e',
+                  fontWeight: '500',
+                  animation: 'fadeIn 0.2s ease-in',
+                }}>
+                This tab is only available on {currentPlatform === 'claude' ? 'ChatGPT' : 'Claude.ai'}
+              </div>
+            )}
 
             {/* Tabs */}
             <div

@@ -3,19 +3,27 @@
 
   # AI Chat RTL Support
 
-  A browser extension that adds comprehensive right-to-left (RTL) text direction support to AI chat interfaces. Currently supports Claude.ai with more platforms coming soon. Perfect for users who work with RTL languages like Arabic, Hebrew, Persian, and Urdu.
+  A browser extension that adds comprehensive right-to-left (RTL) text direction support to AI chat interfaces. Supports Claude.ai and ChatGPT. Perfect for users who work with RTL languages like Arabic, Hebrew, Persian, and Urdu.
 </div>
 
 ## ✨ Features
 
+### Claude.ai
 - **Independent RTL Controls**: Toggle RTL separately for:
   - Chat input field
   - Main conversation content
   - Side panel
 - **KaTeX Support**: Mathematical expressions automatically preserved in LTR direction
-- **Per-Chat Settings**: RTL preferences are saved per conversation with automatic UUID storage
 - **Configurable Panel Position**: Place the control panel at top, right, bottom, or left of the screen
 - **Works Everywhere**: Functions on `/new`, `/project/*` pages and in active chats
+
+### ChatGPT
+- **KaTeX Fix**: Force mathematical expressions to display correctly in RTL responses
+- **Smart Detection**: Automatically detects ChatGPT conversations
+
+### General
+- **Tabbed Interface**: Platform-specific controls with automatic tab selection
+- **Per-Chat Settings**: RTL preferences are saved per conversation with automatic UUID storage
 - **Modern UI**: Beautiful toggle switches with smooth animations
 - **Persistent Storage**: Settings are automatically saved and restored across sessions
 - **Smart Detection**: Automatically detects chat changes and applies saved settings
@@ -39,14 +47,27 @@
 
 ## 📖 Usage
 
+### On Claude.ai
+
 1. Navigate to [Claude.ai](https://claude.ai)
 2. Hover over the blue trigger bar at the top/right/bottom/left of the screen
-3. The control panel will slide out with options for:
+3. The control panel will slide out with the Claude.ai tab selected
+4. Configure:
    - Panel position (top, right, bottom, left)
    - Chat input direction (LTR/RTL)
    - Main content direction (LTR/RTL)
    - Side panel direction (LTR/RTL)
-4. Your settings are automatically saved per chat
+5. Your settings are automatically saved per chat
+
+### On ChatGPT
+
+1. Navigate to [ChatGPT](https://chatgpt.com)
+2. Hover over the blue trigger bar at the top/right/bottom/left of the screen
+3. The control panel will slide out with the ChatGPT tab selected
+4. Enable "Fix KaTeX Math Expressions" to force math to display correctly in RTL responses
+5. Your settings are automatically saved per chat
+
+Note: Tabs are platform-specific - you can only use the Claude.ai tab on Claude.ai and the ChatGPT tab on ChatGPT.
 
 ## 👨‍💻 Author
 

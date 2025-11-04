@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a browser extension that adds comprehensive right-to-left (RTL) text direction support to AI chat interfaces. Currently supports Claude.ai with plans to support additional platforms. Built on a Turborepo monorepo with React, TypeScript, Vite, and pnpm. The extension allows users to independently control RTL direction for chat input, main conversation content, and side panel on a per-conversation basis. Features KaTeX mathematical expression preservation in LTR direction.
+This is a browser extension that adds comprehensive right-to-left (RTL) text direction support to AI chat interfaces. Supports Claude.ai and ChatGPT. Built on a Turborepo monorepo with React, TypeScript, Vite, and pnpm. The extension provides:
+- **Claude.ai**: Independent RTL controls for chat input, main content, and side panel with KaTeX math preservation
+- **ChatGPT**: KaTeX math expression fix for RTL responses
+- **Platform-aware tabbed interface** that automatically selects the appropriate tab based on current website
+- Per-conversation settings persistence with automatic UUID-based storage
 
 ## Commands
 
@@ -45,10 +49,13 @@ This is a browser extension that adds comprehensive right-to-left (RTL) text dir
 
 This extension uses only three of the available page types:
 
-1. **pages/content-ui/** - Main RTL control panel injected into Claude.ai
+1. **pages/content-ui/** - Main RTL control panel injected into Claude.ai and ChatGPT
    - Sliding panel UI with hover trigger bar
    - Position configurable (top, right, bottom, left)
-   - Three independent RTL toggles (chat input, main content, side panel)
+   - Tabbed interface with automatic platform detection
+   - **Claude.ai tab**: Three independent RTL toggles (chat input, main content, side panel)
+   - **ChatGPT tab**: KaTeX math expression fix toggle
+   - Platform-specific tab restrictions with inline warning notifications
    - Automatically detects chat changes and applies saved settings
 
 2. **pages/popup/** - Browser toolbar popup
@@ -61,29 +68,42 @@ This extension uses only three of the available page types:
 ### Core RTL System
 
 **RTL Manager** (`packages/shared/lib/utils/rtl-manager.ts`):
-The heart of the extension. Handles DOM element detection, RTL state management, and per-chat persistence.
+The heart of the extension. Handles DOM element detection, RTL state management, and per-chat persistence with platform-aware logic.
 
-Key functions:
+Platform detection:
+- `isClaude()` - Detects if current site is Claude.ai
+- `isChatGPT()` - Detects if current site is ChatGPT
+
+Claude.ai-specific functions:
 - `findSidePanelContent()` - Locates side panel by traversing from `.cursor-col-resize` anchor
 - `findChatInput()` - Finds chat input via `[data-testid="chat-input"]`
 - `findMainContent()` - Traverses up from chat input to sticky element, then selects previous sibling
-- `injectKatexLTRStyle()` - Injects global CSS to force KaTeX math elements to always render in LTR with proper unicode-bidi
-- `getEffectiveChatId()` - Returns actual chat UUID or "new" for `/new` and `/project/*` pages
+- `injectKatexLTRStyle()` - Injects global CSS to force KaTeX math elements to always render in LTR
+- `applyRTL()` / `applyChatInputRTL()` / `applyMainContentRTL()` - Apply RTL styles (guarded to only run on Claude.ai)
 - `toggleRTL()` / `toggleChatInputRTL()` / `toggleMainContentRTL()` - Toggle and persist RTL state
-- `initRTLManager()` - Starts MutationObserver to reapply RTL on DOM changes and URL navigation
+
+ChatGPT-specific functions:
+- `applyChatGPTKatexStyle()` - Injects/removes KaTeX fix CSS (only runs on ChatGPT)
+- `toggleChatGPTKatexRTL()` - Toggle ChatGPT KaTeX fix setting
+
+Common functions:
+- `getEffectiveChatId()` - Returns actual chat UUID or "new" for `/new` and `/project/*` pages
+- `initRTLManager()` - Starts MutationObserver (only on Claude.ai, no-op on ChatGPT)
 - `transferNewChatSettings()` - Transfers settings from "new" temp key to actual chat UUID
 - `clearNewChatSettings()` - Clears temporary "new" settings when navigating to `/new`
 
 **Chat Utilities** (`packages/shared/lib/utils/chat-utils.ts`):
-- `getCurrentChatId()` - Extracts chat UUID from URL using regex `/chat\/([a-f0-9-]+)/i`
-- `isChatPage()` - Checks if current path starts with `/chat/`
+- `getCurrentChatId()` - Extracts chat UUID from URL with platform support:
+  - Claude.ai: `/chat/[uuid]` pattern
+  - ChatGPT: `/c/[uuid]` pattern
+- `isChatPage()` - Checks if current path is a chat page (platform-aware)
 
 ### Storage System
 
 **Chat RTL Storage** (`packages/storage/lib/impl/chat-rtl-storage.ts`):
 - Uses Chrome Local Storage with live updates
 - Stores settings per chat UUID: `{ chats: { [chatId]: ChatRTLSettings } }`
-- Each chat has: `isRTL`, `isChatInputRTL`, `isMainContentRTL`, `direction`, `textAlign`
+- Each chat has: `isRTL`, `isChatInputRTL`, `isMainContentRTL`, `isChatGPTKatexRTL`, `direction`, `textAlign`
 - Special "new" key for `/new` page settings that transfer to actual chat UUID on first message
 - `getChatSettings()` - Returns settings for chat ID or defaults
 - `setChatSettings()` - Merges partial settings into existing settings
@@ -113,10 +133,15 @@ MutationObserver watches for:
 
 **Control Panel Visibility**:
 Panel only shows when `shouldShowPanel` is true, which requires:
-- Current path is `/new` OR
-- Current path starts with `/project/` OR
-- A valid chat UUID exists in URL
+- On Claude.ai: Current path is `/new` OR starts with `/project/` OR valid chat UUID exists
+- On ChatGPT: Current path starts with `/c/` (conversation page)
 This prevents panel from appearing on landing pages or other non-chat routes.
+
+**Platform-Aware Tab System**:
+- Tabs automatically select based on current hostname
+- Claude.ai tab is disabled on ChatGPT, ChatGPT tab is disabled on Claude.ai
+- Clicking wrong tab shows inline warning: "This tab is only available on [correct platform]"
+- Warning auto-dismisses after 2 seconds
 
 ### Monorepo Structure
 
@@ -135,7 +160,9 @@ Built on Turborepo with shared packages:
 - `env/` - Environment variable management
 
 **chrome-extension/**:
-- `manifest.ts` - Generates manifest.json (Manifest V3) with Claude.ai permissions
+- `manifest.ts` - Generates manifest.json (Manifest V3) with permissions for:
+  - `https://claude.ai/*`
+  - `https://chatgpt.com/*`
 - `src/background/` - Background service worker
 - `public/` - Static assets (icons)
 
@@ -152,12 +179,15 @@ Turborepo orchestrates parallel builds:
 
 - **Node Version**: Requires Node.js >= 22.15.1
 - **Package Manager**: Must use pnpm 10.11.0
-- **Target Site**: Only works on https://claude.ai/* (see manifest host_permissions)
+- **Target Sites**: Works on:
+  - `https://claude.ai/*` (full RTL controls)
+  - `https://chatgpt.com/*` (KaTeX fix only)
 - **Windows**: Requires WSL with Linux distribution installed
 - **Firefox Limitations**:
   - Add-ons load in temporary mode and disappear on browser close
   - Shadow DOM uses inline styles due to Firefox bug with adoptedStyleSheets
-- **DOM Selectors**: Extension relies on specific Claude.ai DOM structure. May break if Claude.ai redesigns their UI:
+- **DOM Selectors**: Claude.ai functionality relies on specific DOM structure. May break if Claude.ai redesigns their UI:
   - Side panel: anchored to `.cursor-col-resize.max-md\:hidden`
   - Chat input: `[data-testid="chat-input"]`
   - Main content: element with `sticky` class and its previous sibling
+- **Platform Guards**: RTL manager uses platform detection to ensure Claude.ai-specific logic doesn't run on ChatGPT and vice versa
