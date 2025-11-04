@@ -371,64 +371,66 @@ export default function App() {
     );
   };
 
-  const renderClaudeContent = () => (
-    <>
-      <div style={{ marginTop: '12px' }}>
-        <div
-          style={{
-            display: 'block',
-            fontSize: '14px',
-            fontWeight: '600',
-            color: '#374151',
-            marginBottom: '10px',
-          }}>
-          Toggle Position
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            gap: '8px',
-            flexWrap: 'wrap',
-          }}>
-          {(['top', 'right', 'bottom', 'left'] as PositionType[]).map(pos => (
-            <label
-              key={pos}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                cursor: 'pointer',
-                padding: '6px 10px',
-                borderRadius: '5px',
-                border: position === pos ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                backgroundColor: position === pos ? '#eff6ff' : 'white',
-                transition: 'all 0.2s',
-              }}>
-              <input
-                type="radio"
-                name="position"
-                value={pos}
-                checked={position === pos}
-                onChange={() => rtlPositionStorage.setPosition(pos)}
-                style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
-              />
-              <span
-                style={{
-                  fontSize: '12px',
-                  color: position === pos ? '#1e40af' : '#374151',
-                  fontWeight: position === pos ? '600' : '400',
-                  userSelect: 'none',
-                  textTransform: 'capitalize',
-                }}>
-                {pos}
-              </span>
-            </label>
-          ))}
-        </div>
+  const renderPositionControls = () => (
+    <div style={{ marginTop: '12px' }}>
+      <div
+        style={{
+          display: 'block',
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#374151',
+          marginBottom: '10px',
+        }}>
+        Panel Position
       </div>
 
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '8px',
+          flexWrap: 'wrap',
+        }}>
+        {(['top', 'right', 'bottom', 'left'] as PositionType[]).map(pos => (
+          <label
+            key={pos}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              cursor: 'pointer',
+              padding: '6px 10px',
+              borderRadius: '5px',
+              border: position === pos ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+              backgroundColor: position === pos ? '#eff6ff' : 'white',
+              transition: 'all 0.2s',
+            }}>
+            <input
+              type="radio"
+              name="position"
+              value={pos}
+              checked={position === pos}
+              onChange={() => rtlPositionStorage.setPosition(pos)}
+              style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
+            />
+            <span
+              style={{
+                fontSize: '12px',
+                color: position === pos ? '#1e40af' : '#374151',
+                fontWeight: position === pos ? '600' : '400',
+                userSelect: 'none',
+                textTransform: 'capitalize',
+              }}>
+              {pos}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderClaudeContent = () => (
+    <>
       {/* Chat Input RTL Toggle */}
       <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
         <div
@@ -567,6 +569,9 @@ export default function App() {
               RTL Settings
             </h2>
 
+            {/* Panel Position Controls (Global) */}
+            {renderPositionControls()}
+
             {/* Tab Warning Notification */}
             {showTabWarning && (
               <div
@@ -590,7 +595,9 @@ export default function App() {
               style={{
                 display: 'flex',
                 borderBottom: '1px solid #e5e7eb',
-                marginTop: '8px',
+                marginTop: '12px',
+                paddingTop: '12px',
+                borderTop: '1px solid #e5e7eb',
               }}>
               {renderTabButton('claude', 'Claude.ai')}
               {renderTabButton('chatgpt', 'ChatGPT')}
