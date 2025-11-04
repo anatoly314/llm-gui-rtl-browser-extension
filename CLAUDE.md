@@ -48,6 +48,29 @@ Browser extension that adds comprehensive right-to-left (RTL) text direction sup
 
 ## Architecture
 
+### Content-Script-Only Design
+
+This extension is a **content-script-only** extension with **NO background service worker**:
+
+- **Zero context invalidation errors** - content scripts never lose their context
+- **Simpler & more reliable** - no IPC overhead or service worker termination issues
+- **Lower resource usage** - no background process running
+- **Direct chrome.storage access** - content script accesses storage API directly
+
+All functionality runs in the content script:
+- MutationObserver watches for URL and DOM changes
+- chrome.storage is accessed directly without message passing
+- No background worker means no 30-second termination issues
+
+**When you would need a service worker**:
+- Browser-level events (downloads, bookmarks, history)
+- Cross-tab communication
+- Background tasks when all tabs are closed
+- Persistent alarms or scheduled tasks
+- Chrome API access that requires background context
+
+This extension doesn't need any of these, so the service worker was eliminated entirely.
+
 ### Design Philosophy
 
 This extension follows a **provider-based architecture** with strict separation of concerns:
@@ -338,7 +361,7 @@ Built on Turborepo with shared packages:
 
 **chrome-extension/**:
 - `manifest.ts` - Generates manifest.json (Manifest V3) with permissions for Claude.ai and ChatGPT
-- `src/background/` - Background service worker
+- `build.mjs` - Simple build script that generates manifest.json from manifest.ts and copies assets
 - `public/` - Static assets (icons)
 
 **pages/**:

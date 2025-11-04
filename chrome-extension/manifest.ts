@@ -29,10 +29,6 @@ const manifest = {
   host_permissions: ['https://claude.ai/*', 'https://chatgpt.com/*'],
   permissions: ['storage'],
   options_page: 'options/index.html',
-  background: {
-    service_worker: 'background.js',
-    type: 'module',
-  },
   action: {
     default_popup: 'popup/index.html',
     default_icon: 'icon-34.png',

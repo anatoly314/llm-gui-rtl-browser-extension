@@ -1,6 +1,6 @@
 {
   "name": "claude-ai-rtl-support",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Chrome extension that adds RTL text direction support to Claude.ai",
   "license": "MIT",
   "private": true,

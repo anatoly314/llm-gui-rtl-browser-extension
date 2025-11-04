@@ -74,7 +74,18 @@ Note: Tabs are platform-specific - you can only use the Claude.ai tab on Claude.
 
 ## 🏗️ Architecture
 
-This extension uses a **provider-based architecture** for maximum flexibility:
+### Content-Script-Only Design
+
+This extension is a **content-script-only** extension with **NO background service worker**:
+
+- ✅ **Zero context invalidation errors** - content scripts never lose their context
+- ✅ **Simpler & more reliable** - no IPC overhead or service worker termination issues
+- ✅ **Lower resource usage** - no background process running
+- ✅ **Direct chrome.storage access** - content script accesses storage API directly
+
+### Provider-Based Architecture
+
+The extension uses a **provider-based architecture** for maximum flexibility:
 
 - **Modular Providers**: Each AI platform (Claude, ChatGPT) has its own isolated module
 - **Separate Storage**: Provider-specific storage namespaces prevent data conflicts
