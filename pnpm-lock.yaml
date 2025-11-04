@@ -225,40 +225,6 @@ importers:
         specifier: ^8.18.2
         version: 8.18.3
 
-  packages/i18n:
-    dependencies:
-      '@extension/env':
-        specifier: workspace:*
-        version: link:../env
-    devDependencies:
-      '@extension/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
-
-  packages/module-manager:
-    devDependencies:
-      '@extension/dev-utils':
-        specifier: workspace:*
-        version: link:../dev-utils
-      '@extension/shared':
-        specifier: workspace:*
-        version: link:../shared
-      '@extension/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
-      '@inquirer/prompts':
-        specifier: ^7.5.1
-        version: 7.8.4(@types/node@24.3.1)
-      '@types/yargs':
-        specifier: ^17.0.33
-        version: 17.0.33
-      tsx:
-        specifier: ^4.19.4
-        version: 4.20.5
-      yargs:
-        specifier: ^17.7.2
-        version: 17.7.2
-
   packages/shared:
     dependencies:
       react-error-boundary:
@@ -291,9 +257,6 @@ importers:
 
   packages/ui:
     dependencies:
-      '@extension/i18n':
-        specifier: workspace:*
-        version: link:../i18n
       '@extension/shared':
         specifier: workspace:*
         version: link:../shared
@@ -348,58 +311,11 @@ importers:
         specifier: workspace:*
         version: link:../tsconfig
 
-  pages/content:
-    dependencies:
-      '@extension/env':
-        specifier: workspace:*
-        version: link:../../packages/env
-      '@extension/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@extension/storage':
-        specifier: workspace:*
-        version: link:../../packages/storage
-    devDependencies:
-      '@extension/hmr':
-        specifier: workspace:*
-        version: link:../../packages/hmr
-      '@extension/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
-      '@extension/vite-config':
-        specifier: workspace:*
-        version: link:../../packages/vite-config
-
-  pages/content-runtime:
-    dependencies:
-      '@extension/env':
-        specifier: workspace:*
-        version: link:../../packages/env
-      '@extension/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-    devDependencies:
-      '@extension/hmr':
-        specifier: workspace:*
-        version: link:../../packages/hmr
-      '@extension/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@extension/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
-      '@extension/vite-config':
-        specifier: workspace:*
-        version: link:../../packages/vite-config
-
   pages/content-ui:
     dependencies:
       '@extension/env':
         specifier: workspace:*
         version: link:../../packages/env
-      '@extension/i18n':
-        specifier: workspace:*
-        version: link:../../packages/i18n
       '@extension/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -425,9 +341,6 @@ importers:
 
   pages/options:
     dependencies:
-      '@extension/i18n':
-        specifier: workspace:*
-        version: link:../../packages/i18n
       '@extension/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -450,9 +363,6 @@ importers:
 
   pages/popup:
     dependencies:
-      '@extension/i18n':
-        specifier: workspace:*
-        version: link:../../packages/i18n
       '@extension/shared':
         specifier: workspace:*
         version: link:../../packages/shared
