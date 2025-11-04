@@ -423,7 +423,38 @@ export const toggleChatGPTKatexRTL = async (): Promise<boolean> => {
  * Initializes RTL manager - applies saved state and watches for URL changes and DOM changes
  */
 export const initRTLManager = (): (() => void) => {
-  // Only initialize on Claude.ai
+  // ChatGPT-specific initialization
+  if (isChatGPT()) {
+    // Apply saved KaTeX fix state on load
+    const applyChatGPTKatexState = async () => {
+      const chatId = getCurrentChatId();
+      if (!chatId) return;
+
+      const isKatexRTL = await getCurrentChatGPTKatexRTLState();
+      applyChatGPTKatexStyle(isKatexRTL);
+    };
+
+    // Initial apply
+    applyChatGPTKatexState();
+
+    // Watch for URL changes to reapply on navigation
+    let lastUrl = location.href;
+    const observer = new MutationObserver(() => {
+      const currentUrl = location.href;
+      if (currentUrl !== lastUrl) {
+        lastUrl = currentUrl;
+        applyChatGPTKatexState();
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+    };
+  }
+
+  // Only initialize Claude.ai logic on Claude.ai
   if (!isClaude()) {
     return () => {}; // Return no-op cleanup function
   }
