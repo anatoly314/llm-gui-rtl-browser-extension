@@ -1,6 +1,22 @@
 import { getCurrentChatId } from './chat-utils.js';
 
 /**
+ * Detects if current site is Claude.ai
+ */
+const isClaude = (): boolean => {
+  const hostname = window.location.hostname;
+  return hostname === 'claude.ai';
+};
+
+/**
+ * Detects if current site is ChatGPT
+ */
+const isChatGPT = (): boolean => {
+  const hostname = window.location.hostname;
+  return hostname === 'chatgpt.com' || hostname === 'chat.openai.com';
+};
+
+/**
  * Finds the side panel content element with single class 'h-full'
  */
 const findSidePanelContent = (): HTMLElement | null => {
@@ -58,6 +74,9 @@ const findMainContent = (): HTMLElement | null => {
  * Applies or removes RTL direction to the side panel content
  */
 const applyRTL = (enable: boolean): void => {
+  // Only apply on Claude.ai
+  if (!isClaude()) return;
+
   const sidePanelContent = findSidePanelContent();
   if (!sidePanelContent) {
     console.debug('[RTL Manager] Side panel content not found');
@@ -75,6 +94,9 @@ const applyRTL = (enable: boolean): void => {
  * Applies or removes RTL direction to the chat input
  */
 const applyChatInputRTL = (enable: boolean): void => {
+  // Only apply on Claude.ai
+  if (!isClaude()) return;
+
   const chatInput = findChatInput();
   if (!chatInput) {
     console.debug('[RTL Manager] Chat input not found');
@@ -89,7 +111,7 @@ const applyChatInputRTL = (enable: boolean): void => {
 };
 
 /**
- * Injects global CSS to force KaTeX elements to always be LTR
+ * Injects global CSS to force KaTeX elements to always be LTR (Claude.ai version)
  */
 const injectKatexLTRStyle = (): void => {
   const styleId = 'katex-ltr-override';
@@ -112,9 +134,43 @@ const injectKatexLTRStyle = (): void => {
 };
 
 /**
+ * Applies or removes special KaTeX styling for ChatGPT
+ */
+const applyChatGPTKatexStyle = (enable: boolean): void => {
+  // Only apply on ChatGPT
+  if (!isChatGPT()) return;
+
+  const styleId = 'chatgpt-katex-rtl-override';
+  const existingStyle = document.getElementById(styleId);
+
+  if (enable) {
+    // Add style if it doesn't exist
+    if (!existingStyle) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        .katex {
+          direction: ltr;
+          unicode-bidi: bidi-override;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  } else {
+    // Remove style if it exists
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+  }
+};
+
+/**
  * Applies or removes RTL direction to the main content
  */
 const applyMainContentRTL = (enable: boolean): void => {
+  // Only apply on Claude.ai
+  if (!isClaude()) return;
+
   const mainContent = findMainContent();
   if (!mainContent) {
     console.debug('[RTL Manager] Main content not found');
@@ -187,6 +243,23 @@ export const getCurrentMainContentRTLState = async (): Promise<boolean> => {
     return settings.isMainContentRTL;
   } catch (error) {
     console.error('[RTL Manager] Error getting main content RTL state:', error);
+    return false;
+  }
+};
+
+/**
+ * Gets the current ChatGPT KaTeX RTL state from storage for the current chat
+ */
+export const getCurrentChatGPTKatexRTLState = async (): Promise<boolean> => {
+  const chatId = getEffectiveChatId();
+  if (!chatId) return false;
+
+  try {
+    const { chatRTLStorage } = await import('@extension/storage');
+    const settings = await chatRTLStorage.getChatSettings(chatId);
+    return settings.isChatGPTKatexRTL;
+  } catch (error) {
+    console.error('[RTL Manager] Error getting ChatGPT KaTeX RTL state:', error);
     return false;
   }
 };
@@ -317,9 +390,44 @@ export const toggleMainContentRTL = async (): Promise<boolean> => {
 };
 
 /**
+ * Toggles ChatGPT KaTeX RTL styling for the current chat and saves to storage
+ */
+export const toggleChatGPTKatexRTL = async (): Promise<boolean> => {
+  const chatId = getEffectiveChatId();
+  if (!chatId) {
+    console.debug('[RTL Manager] No valid context for ChatGPT KaTeX RTL toggle');
+    return false;
+  }
+
+  try {
+    const { chatRTLStorage } = await import('@extension/storage');
+    const currentSettings = await chatRTLStorage.getChatSettings(chatId);
+    const newRTLState = !currentSettings.isChatGPTKatexRTL;
+
+    // Save to storage
+    await chatRTLStorage.setChatSettings(chatId, {
+      isChatGPTKatexRTL: newRTLState,
+    });
+
+    // Apply immediately
+    applyChatGPTKatexStyle(newRTLState);
+
+    return newRTLState;
+  } catch (error) {
+    console.error('[RTL Manager] Error toggling ChatGPT KaTeX RTL:', error);
+    return false;
+  }
+};
+
+/**
  * Initializes RTL manager - applies saved state and watches for URL changes and DOM changes
  */
 export const initRTLManager = (): (() => void) => {
+  // Only initialize on Claude.ai
+  if (!isClaude()) {
+    return () => {}; // Return no-op cleanup function
+  }
+
   let currentChatId: string | null = null;
   let lastSidePanelElement: HTMLElement | null = null;
   let lastChatInputElement: HTMLElement | null = null;
@@ -406,4 +514,4 @@ export const initRTLManager = (): (() => void) => {
   };
 };
 
-export { applyRTL, applyChatInputRTL, applyMainContentRTL };
+export { applyRTL, applyChatInputRTL, applyMainContentRTL, applyChatGPTKatexStyle };

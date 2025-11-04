@@ -3,10 +3,12 @@ import {
   toggleRTL,
   toggleChatInputRTL,
   toggleMainContentRTL,
+  toggleChatGPTKatexRTL,
   initRTLManager,
   getCurrentRTLState,
   getCurrentChatInputRTLState,
   getCurrentMainContentRTLState,
+  getCurrentChatGPTKatexRTLState,
   getCurrentChatId,
   transferNewChatSettings,
   clearNewChatSettings,
@@ -52,24 +54,46 @@ const ToggleSwitch = ({ checked, onChange, label }: { checked: boolean; onChange
   </div>
 );
 
+type TabType = 'claude' | 'chatgpt';
+
 export default function App() {
   const [isHovered, setIsHovered] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('claude');
   const [isRTL, setIsRTL] = useState(false);
   const [isChatInputRTL, setIsChatInputRTL] = useState(false);
   const [isMainContentRTL, setIsMainContentRTL] = useState(false);
+  const [isChatGPTKatexRTL, setIsChatGPTKatexRTL] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [shouldShowPanel, setShouldShowPanel] = useState(false);
   const storageData = useStorage(rtlPositionStorage);
   const position = storageData?.position || 'top';
 
-  // Check if panel should be visible (only on /new, /project/, or when chatId exists)
+  // Check if panel should be visible (only on /new, /project/, /c/, or when chatId exists)
   const checkPanelVisibility = () => {
     const path = window.location.pathname;
+    const hostname = window.location.hostname;
     const chatId = getCurrentChatId();
+
+    // Claude.ai checks
     const isNewPage = path === '/new';
     const isProjectPage = path.startsWith('/project/');
     const hasChatId = !!chatId;
-    setShouldShowPanel(isNewPage || isProjectPage || hasChatId);
+
+    // ChatGPT checks
+    const isChatGPT = hostname === 'chatgpt.com' || hostname === 'chat.openai.com';
+    const isChatGPTConversation = isChatGPT && path.startsWith('/c/');
+
+    setShouldShowPanel(isNewPage || isProjectPage || hasChatId || isChatGPTConversation);
+  };
+
+  // Auto-select tab based on current website
+  const autoSelectTab = () => {
+    const hostname = window.location.hostname;
+    if (hostname === 'chatgpt.com' || hostname === 'chat.openai.com') {
+      setActiveTab('chatgpt');
+    } else if (hostname === 'claude.ai') {
+      setActiveTab('claude');
+    }
   };
 
   // Initialize RTL manager and load current state
@@ -81,6 +105,7 @@ export default function App() {
       getCurrentRTLState().then(state => setIsRTL(state));
       getCurrentChatInputRTLState().then(state => setIsChatInputRTL(state));
       getCurrentMainContentRTLState().then(state => setIsMainContentRTL(state));
+      getCurrentChatGPTKatexRTLState().then(state => setIsChatGPTKatexRTL(state));
     };
 
     // Load initial RTL states and check visibility
@@ -92,6 +117,7 @@ export default function App() {
       }
       loadRTLStates();
       checkPanelVisibility();
+      autoSelectTab();
     };
 
     initializeStates();
@@ -99,9 +125,11 @@ export default function App() {
     // Watch for chat changes and visibility by monitoring URL
     let lastChatId = getCurrentChatId();
     let lastPath = window.location.pathname;
+    let lastHostname = window.location.hostname;
     const checkChanges = async () => {
       const currentChatId = getCurrentChatId();
       const currentPath = window.location.pathname;
+      const currentHostname = window.location.hostname;
 
       // Check if chat changed
       if (currentChatId !== lastChatId) {
@@ -128,6 +156,12 @@ export default function App() {
         lastPath = currentPath;
         checkPanelVisibility();
       }
+
+      // Check if hostname changed (affects tab selection)
+      if (currentHostname !== lastHostname) {
+        lastHostname = currentHostname;
+        autoSelectTab();
+      }
     };
 
     // Check for changes every 500ms
@@ -152,6 +186,11 @@ export default function App() {
   const handleToggleMainContentRTL = async () => {
     const newState = await toggleMainContentRTL();
     setIsMainContentRTL(newState);
+  };
+
+  const handleToggleChatGPTKatexRTL = async () => {
+    const newState = await toggleChatGPTKatexRTL();
+    setIsChatGPTKatexRTL(newState);
   };
 
   const getContainerStyle = () => {
@@ -292,6 +331,205 @@ export default function App() {
     }
   };
 
+  const renderTabButton = (tab: TabType, label: string, disabled = false) => (
+    <button
+      onClick={() => !disabled && setActiveTab(tab)}
+      disabled={disabled}
+      style={{
+        flex: 1,
+        padding: '4px 8px',
+        border: 'none',
+        borderBottom: activeTab === tab ? '2px solid #3b82f6' : '2px solid transparent',
+        backgroundColor: activeTab === tab ? '#eff6ff' : 'transparent',
+        color: disabled ? '#9ca3af' : activeTab === tab ? '#1e40af' : '#374151',
+        fontSize: '12px',
+        fontWeight: activeTab === tab ? '600' : '500',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        transition: 'all 0.2s',
+        position: 'relative' as const,
+      }}>
+      {label}
+      {disabled && (
+        <span
+          style={{
+            display: 'block',
+            fontSize: '9px',
+            color: '#9ca3af',
+            fontWeight: '400',
+            marginTop: '1px',
+          }}>
+          Coming Soon
+        </span>
+      )}
+    </button>
+  );
+
+  const renderClaudeContent = () => (
+    <>
+      <div style={{ marginTop: '12px' }}>
+        <div
+          style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#374151',
+            marginBottom: '10px',
+          }}>
+          Toggle Position
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '8px',
+            flexWrap: 'wrap',
+          }}>
+          {(['top', 'right', 'bottom', 'left'] as PositionType[]).map(pos => (
+            <label
+              key={pos}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                cursor: 'pointer',
+                padding: '6px 10px',
+                borderRadius: '5px',
+                border: position === pos ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+                backgroundColor: position === pos ? '#eff6ff' : 'white',
+                transition: 'all 0.2s',
+              }}>
+              <input
+                type="radio"
+                name="position"
+                value={pos}
+                checked={position === pos}
+                onChange={() => rtlPositionStorage.setPosition(pos)}
+                style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
+              />
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: position === pos ? '#1e40af' : '#374151',
+                  fontWeight: position === pos ? '600' : '400',
+                  userSelect: 'none',
+                  textTransform: 'capitalize',
+                }}>
+                {pos}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Chat Input RTL Toggle */}
+      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+        <div
+          style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#374151',
+            marginBottom: '10px',
+          }}>
+          Chat Input Direction
+        </div>
+
+        <ToggleSwitch checked={isChatInputRTL} onChange={handleToggleChatInputRTL} label="Enable RTL" />
+
+        <p
+          style={{
+            marginTop: '6px',
+            fontSize: '12px',
+            color: '#6b7280',
+          }}>
+          {isChatInputRTL ? 'Chat input is displayed right-to-left' : 'Chat input is displayed left-to-right'}
+        </p>
+      </div>
+
+      {/* Main Content RTL Toggle */}
+      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+        <div
+          style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#374151',
+            marginBottom: '10px',
+          }}>
+          Main Content Direction
+        </div>
+
+        <ToggleSwitch checked={isMainContentRTL} onChange={handleToggleMainContentRTL} label="Enable RTL" />
+
+        <p
+          style={{
+            marginTop: '6px',
+            fontSize: '12px',
+            color: '#6b7280',
+          }}>
+          {isMainContentRTL ? 'Main content is displayed right-to-left' : 'Main content is displayed left-to-right'}
+        </p>
+      </div>
+
+      {/* Side Panel RTL Toggle */}
+      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+        <div
+          style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#374151',
+            marginBottom: '10px',
+          }}>
+          Side Panel Direction
+        </div>
+
+        <ToggleSwitch checked={isRTL} onChange={handleToggleRTL} label="Enable RTL" />
+
+        <p
+          style={{
+            marginTop: '6px',
+            fontSize: '12px',
+            color: '#6b7280',
+          }}>
+          {isRTL ? 'Side panel is displayed right-to-left' : 'Side panel is displayed left-to-right'}
+        </p>
+      </div>
+    </>
+  );
+
+  const renderChatGPTContent = () => (
+    <>
+      {/* KaTeX RTL Toggle */}
+      <div style={{ marginTop: '12px' }}>
+        <div
+          style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#374151',
+            marginBottom: '10px',
+          }}>
+          KaTeX Math Direction
+        </div>
+
+        <ToggleSwitch checked={isChatGPTKatexRTL} onChange={handleToggleChatGPTKatexRTL} label="Enable RTL" />
+
+        <p
+          style={{
+            marginTop: '6px',
+            fontSize: '12px',
+            color: '#6b7280',
+          }}>
+          {isChatGPTKatexRTL
+            ? 'KaTeX math expressions are displayed right-to-left'
+            : 'KaTeX math expressions are displayed left-to-right'}
+        </p>
+      </div>
+    </>
+  );
+
   return (
     <>
       {showToast && (
@@ -322,226 +560,21 @@ export default function App() {
               RTL Settings
             </h2>
 
-            <div style={{ marginTop: '12px' }}>
-              <div
-                style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '10px',
-                }}>
-                Toggle Position
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: '8px',
-                  flexWrap: 'wrap',
-                }}>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    cursor: 'pointer',
-                    padding: '6px 10px',
-                    borderRadius: '5px',
-                    border: position === 'top' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                    backgroundColor: position === 'top' ? '#eff6ff' : 'white',
-                    transition: 'all 0.2s',
-                  }}>
-                  <input
-                    type="radio"
-                    name="position"
-                    value="top"
-                    checked={position === 'top'}
-                    onChange={() => rtlPositionStorage.setPosition('top' as PositionType)}
-                    style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
-                  />
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      color: position === 'top' ? '#1e40af' : '#374151',
-                      fontWeight: position === 'top' ? '600' : '400',
-                      userSelect: 'none',
-                    }}>
-                    Top
-                  </span>
-                </label>
-
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    cursor: 'pointer',
-                    padding: '6px 10px',
-                    borderRadius: '5px',
-                    border: position === 'right' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                    backgroundColor: position === 'right' ? '#eff6ff' : 'white',
-                    transition: 'all 0.2s',
-                  }}>
-                  <input
-                    type="radio"
-                    name="position"
-                    value="right"
-                    checked={position === 'right'}
-                    onChange={() => rtlPositionStorage.setPosition('right' as PositionType)}
-                    style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
-                  />
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      color: position === 'right' ? '#1e40af' : '#374151',
-                      fontWeight: position === 'right' ? '600' : '400',
-                      userSelect: 'none',
-                    }}>
-                    Right
-                  </span>
-                </label>
-
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    cursor: 'pointer',
-                    padding: '6px 10px',
-                    borderRadius: '5px',
-                    border: position === 'bottom' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                    backgroundColor: position === 'bottom' ? '#eff6ff' : 'white',
-                    transition: 'all 0.2s',
-                  }}>
-                  <input
-                    type="radio"
-                    name="position"
-                    value="bottom"
-                    checked={position === 'bottom'}
-                    onChange={() => rtlPositionStorage.setPosition('bottom' as PositionType)}
-                    style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
-                  />
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      color: position === 'bottom' ? '#1e40af' : '#374151',
-                      fontWeight: position === 'bottom' ? '600' : '400',
-                      userSelect: 'none',
-                    }}>
-                    Bottom
-                  </span>
-                </label>
-
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    cursor: 'pointer',
-                    padding: '6px 10px',
-                    borderRadius: '5px',
-                    border: position === 'left' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                    backgroundColor: position === 'left' ? '#eff6ff' : 'white',
-                    transition: 'all 0.2s',
-                  }}>
-                  <input
-                    type="radio"
-                    name="position"
-                    value="left"
-                    checked={position === 'left'}
-                    onChange={() => rtlPositionStorage.setPosition('left' as PositionType)}
-                    style={{ width: '13px', height: '13px', cursor: 'pointer', accentColor: '#3b82f6' }}
-                  />
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      color: position === 'left' ? '#1e40af' : '#374151',
-                      fontWeight: position === 'left' ? '600' : '400',
-                      userSelect: 'none',
-                    }}>
-                    Left
-                  </span>
-                </label>
-              </div>
+            {/* Tabs */}
+            <div
+              style={{
+                display: 'flex',
+                borderBottom: '1px solid #e5e7eb',
+                marginTop: '8px',
+              }}>
+              {renderTabButton('claude', 'Claude.ai')}
+              {renderTabButton('chatgpt', 'ChatGPT')}
             </div>
 
-            {/* Chat Input RTL Toggle */}
-            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
-              <div
-                style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '10px',
-                }}>
-                Chat Input Direction
-              </div>
-
-              <ToggleSwitch checked={isChatInputRTL} onChange={handleToggleChatInputRTL} label="Enable RTL" />
-
-              <p
-                style={{
-                  marginTop: '6px',
-                  fontSize: '12px',
-                  color: '#6b7280',
-                }}>
-                {isChatInputRTL ? 'Chat input is displayed right-to-left' : 'Chat input is displayed left-to-right'}
-              </p>
-            </div>
-
-            {/* Main Content RTL Toggle */}
-            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
-              <div
-                style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '10px',
-                }}>
-                Main Content Direction
-              </div>
-
-              <ToggleSwitch checked={isMainContentRTL} onChange={handleToggleMainContentRTL} label="Enable RTL" />
-
-              <p
-                style={{
-                  marginTop: '6px',
-                  fontSize: '12px',
-                  color: '#6b7280',
-                }}>
-                {isMainContentRTL
-                  ? 'Main content is displayed right-to-left'
-                  : 'Main content is displayed left-to-right'}
-              </p>
-            </div>
-
-            {/* Side Panel RTL Toggle */}
-            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
-              <div
-                style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '10px',
-                }}>
-                Side Panel Direction
-              </div>
-
-              <ToggleSwitch checked={isRTL} onChange={handleToggleRTL} label="Enable RTL" />
-
-              <p
-                style={{
-                  marginTop: '6px',
-                  fontSize: '12px',
-                  color: '#6b7280',
-                }}>
-                {isRTL ? 'Side panel is displayed right-to-left' : 'Side panel is displayed left-to-right'}
-              </p>
+            {/* Tab Content */}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {activeTab === 'claude' && renderClaudeContent()}
+              {activeTab === 'chatgpt' && renderChatGPTContent()}
             </div>
           </div>
         </div>

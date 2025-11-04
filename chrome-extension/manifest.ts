@@ -26,7 +26,7 @@ const manifest = {
   version: packageJson.version,
   description:
     'Add right-to-left text direction support to AI chat interfaces with independent toggles for input, content, and side panels',
-  host_permissions: ['https://claude.ai/*'],
+  host_permissions: ['https://claude.ai/*', 'https://chatgpt.com/*'],
   permissions: ['storage'],
   options_page: 'options/index.html',
   background: {
@@ -42,14 +42,14 @@ const manifest = {
   },
   content_scripts: [
     {
-      matches: ['https://claude.ai/*'],
+      matches: ['https://claude.ai/*', 'https://chatgpt.com/*'],
       js: ['content-ui/all.iife.js'],
     },
   ],
   web_accessible_resources: [
     {
       resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon-34.png'],
-      matches: ['https://claude.ai/*'],
+      matches: ['https://claude.ai/*', 'https://chatgpt.com/*'],
     },
   ],
 } satisfies ManifestType;
