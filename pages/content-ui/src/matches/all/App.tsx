@@ -4,11 +4,13 @@ import {
   toggleChatInputRTL,
   toggleMainContentRTL,
   toggleChatGPTKatexRTL,
+  toggleChatGPTInputRTL,
   initRTLManager,
   getCurrentRTLState,
   getCurrentChatInputRTLState,
   getCurrentMainContentRTLState,
   getCurrentChatGPTKatexRTLState,
+  getCurrentChatGPTInputRTLState,
   getCurrentChatId,
   transferNewChatSettings,
   clearNewChatSettings,
@@ -63,6 +65,7 @@ export default function App() {
   const [isChatInputRTL, setIsChatInputRTL] = useState(false);
   const [isMainContentRTL, setIsMainContentRTL] = useState(false);
   const [isChatGPTKatexRTL, setIsChatGPTKatexRTL] = useState(false);
+  const [isChatGPTInputRTL, setIsChatGPTInputRTL] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [shouldShowPanel, setShouldShowPanel] = useState(false);
   const [showTabWarning, setShowTabWarning] = useState(false);
@@ -110,6 +113,7 @@ export default function App() {
       getCurrentChatInputRTLState().then(state => setIsChatInputRTL(state));
       getCurrentMainContentRTLState().then(state => setIsMainContentRTL(state));
       getCurrentChatGPTKatexRTLState().then(state => setIsChatGPTKatexRTL(state));
+      getCurrentChatGPTInputRTLState().then(state => setIsChatGPTInputRTL(state));
     };
 
     // Load initial RTL states and check visibility
@@ -195,6 +199,11 @@ export default function App() {
   const handleToggleChatGPTKatexRTL = async () => {
     const newState = await toggleChatGPTKatexRTL();
     setIsChatGPTKatexRTL(newState);
+  };
+
+  const handleToggleChatGPTInputRTL = async () => {
+    const newState = await toggleChatGPTInputRTL();
+    setIsChatGPTInputRTL(newState);
   };
 
   const getContainerStyle = () => {
@@ -510,8 +519,33 @@ export default function App() {
 
   const renderChatGPTContent = () => (
     <>
+      {/* Chat Input RTL Toggle */}
+      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+        <div
+          style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#374151',
+            marginBottom: '10px',
+          }}>
+          Chat Input Direction
+        </div>
+
+        <ToggleSwitch checked={isChatGPTInputRTL} onChange={handleToggleChatGPTInputRTL} label="Enable RTL" />
+
+        <p
+          style={{
+            marginTop: '6px',
+            fontSize: '12px',
+            color: '#6b7280',
+          }}>
+          {isChatGPTInputRTL ? 'Chat input is displayed right-to-left' : 'Chat input is displayed left-to-right'}
+        </p>
+      </div>
+
       {/* KaTeX RTL Toggle */}
-      <div style={{ marginTop: '12px' }}>
+      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
         <div
           style={{
             display: 'block',

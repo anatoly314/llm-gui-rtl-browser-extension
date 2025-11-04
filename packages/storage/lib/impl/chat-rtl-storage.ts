@@ -11,6 +11,7 @@ interface ChatRTLSettings {
   direction: DirectionType;
   textAlign: TextAlignType;
   isChatGPTKatexRTL: boolean; // ChatGPT-specific KaTeX styling
+  isChatGPTInputRTL: boolean; // ChatGPT-specific input RTL
   // Add more properties as needed:
   // fontSize?: number;
   // fontFamily?: string;
@@ -34,6 +35,7 @@ const DEFAULT_CHAT_SETTINGS: ChatRTLSettings = {
   direction: 'ltr',
   textAlign: 'left',
   isChatGPTKatexRTL: false,
+  isChatGPTInputRTL: false,
 };
 
 const storage = createStorage<ChatRTLStorageState>(

@@ -165,6 +165,31 @@ const applyChatGPTKatexStyle = (enable: boolean): void => {
 };
 
 /**
+ * Finds the ChatGPT prompt textarea
+ */
+const findChatGPTInput = (): HTMLElement | null => document.getElementById('prompt-textarea');
+
+/**
+ * Applies or removes RTL direction to the ChatGPT input
+ */
+const applyChatGPTInputRTL = (enable: boolean): void => {
+  // Only apply on ChatGPT
+  if (!isChatGPT()) return;
+
+  const input = findChatGPTInput();
+  if (!input) {
+    console.debug('[RTL Manager] ChatGPT input not found');
+    return;
+  }
+
+  if (enable) {
+    input.style.direction = 'rtl';
+  } else {
+    input.style.direction = 'ltr';
+  }
+};
+
+/**
  * Applies or removes RTL direction to the main content
  */
 const applyMainContentRTL = (enable: boolean): void => {
@@ -260,6 +285,23 @@ export const getCurrentChatGPTKatexRTLState = async (): Promise<boolean> => {
     return settings.isChatGPTKatexRTL;
   } catch (error) {
     console.error('[RTL Manager] Error getting ChatGPT KaTeX RTL state:', error);
+    return false;
+  }
+};
+
+/**
+ * Gets the current ChatGPT Input RTL state from storage for the current chat
+ */
+export const getCurrentChatGPTInputRTLState = async (): Promise<boolean> => {
+  const chatId = getEffectiveChatId();
+  if (!chatId) return false;
+
+  try {
+    const { chatRTLStorage } = await import('@extension/storage');
+    const settings = await chatRTLStorage.getChatSettings(chatId);
+    return settings.isChatGPTInputRTL;
+  } catch (error) {
+    console.error('[RTL Manager] Error getting ChatGPT Input RTL state:', error);
     return false;
   }
 };
@@ -420,30 +462,78 @@ export const toggleChatGPTKatexRTL = async (): Promise<boolean> => {
 };
 
 /**
+ * Toggles ChatGPT Input RTL direction for the current chat and saves to storage
+ */
+export const toggleChatGPTInputRTL = async (): Promise<boolean> => {
+  const chatId = getEffectiveChatId();
+  if (!chatId) {
+    console.debug('[RTL Manager] No valid context for ChatGPT Input RTL toggle');
+    return false;
+  }
+
+  try {
+    const { chatRTLStorage } = await import('@extension/storage');
+    const currentSettings = await chatRTLStorage.getChatSettings(chatId);
+    const newRTLState = !currentSettings.isChatGPTInputRTL;
+
+    // Save to storage
+    await chatRTLStorage.setChatSettings(chatId, {
+      isChatGPTInputRTL: newRTLState,
+    });
+
+    // Apply immediately
+    applyChatGPTInputRTL(newRTLState);
+
+    return newRTLState;
+  } catch (error) {
+    console.error('[RTL Manager] Error toggling ChatGPT Input RTL:', error);
+    return false;
+  }
+};
+
+/**
  * Initializes RTL manager - applies saved state and watches for URL changes and DOM changes
  */
 export const initRTLManager = (): (() => void) => {
   // ChatGPT-specific initialization
   if (isChatGPT()) {
-    // Apply saved KaTeX fix state on load
-    const applyChatGPTKatexState = async () => {
+    // Apply saved states on load
+    const applyChatGPTStates = async () => {
       const chatId = getCurrentChatId();
       if (!chatId) return;
 
       const isKatexRTL = await getCurrentChatGPTKatexRTLState();
+      const isInputRTL = await getCurrentChatGPTInputRTLState();
+
       applyChatGPTKatexStyle(isKatexRTL);
+      applyChatGPTInputRTL(isInputRTL);
     };
 
     // Initial apply
-    applyChatGPTKatexState();
+    applyChatGPTStates();
 
-    // Watch for URL changes to reapply on navigation
+    // Watch for URL changes and DOM changes to reapply on navigation
     let lastUrl = location.href;
-    const observer = new MutationObserver(() => {
+    let lastInputElement: HTMLElement | null = null;
+
+    const observer = new MutationObserver(async () => {
       const currentUrl = location.href;
+      const currentInputElement = findChatGPTInput();
+
+      // Reapply on URL change
       if (currentUrl !== lastUrl) {
         lastUrl = currentUrl;
-        applyChatGPTKatexState();
+        await applyChatGPTStates();
+      }
+
+      // Reapply if input element changed
+      if (currentInputElement && currentInputElement !== lastInputElement) {
+        lastInputElement = currentInputElement;
+        const chatId = getCurrentChatId();
+        if (chatId) {
+          const isInputRTL = await getCurrentChatGPTInputRTLState();
+          applyChatGPTInputRTL(isInputRTL);
+        }
       }
     });
 
@@ -545,4 +635,4 @@ export const initRTLManager = (): (() => void) => {
   };
 };
 
-export { applyRTL, applyChatInputRTL, applyMainContentRTL, applyChatGPTKatexStyle };
+export { applyRTL, applyChatInputRTL, applyMainContentRTL, applyChatGPTKatexStyle, applyChatGPTInputRTL };
