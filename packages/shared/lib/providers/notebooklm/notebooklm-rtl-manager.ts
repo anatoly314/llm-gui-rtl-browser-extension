@@ -41,6 +41,7 @@ const applyNotebookLMKatexStyle = (enable: boolean): void => {
         .katex {
           direction: ltr;
           unicode-bidi: bidi-override;
+          white-space: nowrap;
         }
       `;
       document.head.appendChild(style);
