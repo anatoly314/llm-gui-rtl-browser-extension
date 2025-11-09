@@ -10,7 +10,6 @@ const Popup = () => {
     <div className={cn('App', 'bg-slate-50')}>
       <header className={cn('App-header', 'text-gray-900')}>
         <h2 className="mb-1 text-xl font-bold">AI Chat RTL Support</h2>
-        <p className="mb-3 text-xs text-gray-600">Supports Claude.ai, ChatGPT & NotebookLM</p>
         <p className="mb-4 max-w-md text-center text-sm">
           Comprehensive right-to-left text direction support with independent controls for chat input, main content,
           side panel, and chat panels across multiple AI platforms.
@@ -25,6 +24,14 @@ const Popup = () => {
             <li>Configurable panel position (top/right/bottom/left)</li>
             <li>Provider dropdown with platform detection</li>
             <li>Modern toggle switches with smooth animations</li>
+            <li>
+              <strong>Supports</strong>:
+              <ul className="ml-4 list-inside list-disc">
+                <li>Claude.ai</li>
+                <li>ChatGPT</li>
+                <li>NotebookLM</li>
+              </ul>
+            </li>
           </ul>
         </div>
         <div className="mt-4 flex items-center justify-center gap-4 text-xs">
