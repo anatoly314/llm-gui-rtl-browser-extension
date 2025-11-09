@@ -85,10 +85,11 @@ This extension follows a **provider-based architecture** with strict separation 
 1. **pages/content-ui/** - Main RTL control panel injected into Claude.ai and ChatGPT
    - Sliding panel UI with hover trigger bar
    - Position configurable (top, right, bottom, left)
-   - Tabbed interface with automatic platform detection
-   - **Claude.ai tab**: Three independent RTL toggles (chat input, main content, side panel)
-   - **ChatGPT tab**: KaTeX math expression fix toggle + home page input RTL toggle
-   - Platform-specific tab restrictions with inline warning notifications
+   - Provider dropdown selector with automatic platform detection
+   - **Claude.ai provider**: Three independent RTL toggles (chat input, main content, side panel)
+   - **ChatGPT provider**: KaTeX math expression fix toggle + home page input RTL toggle
+   - Platform-specific restrictions with inline warning notifications
+   - Dropdown shows all providers but only allows selecting the current platform
 
 2. **pages/popup/** - Browser toolbar popup
 3. **pages/options/** - Extension options/about page
@@ -96,6 +97,16 @@ This extension follows a **provider-based architecture** with strict separation 
 ### Provider System
 
 The extension uses a modular provider architecture where each AI platform has its own self-contained module. Functions follow a consistent naming pattern with provider prefixes (e.g., `toggleClaudeRTL`, `toggleChatGPTKatexRTL`) to avoid naming conflicts and make imports explicit.
+
+**Key architectural principle:** Each provider module is a **completely self-contained unit** with:
+- Its own DOM detection logic (internal, not exported)
+- Its own RTL application functions (internal)
+- Its own state management functions (exported)
+- Its own MutationObserver initialization (exported)
+- Zero dependencies on other providers
+- Zero shared state between providers
+
+This means adding a new provider (Gemini, Perplexity, etc.) requires **zero changes** to existing provider code.
 
 #### Provider Detection
 
@@ -110,64 +121,75 @@ Central detection logic for identifying which AI platform is currently active:
 
 **`packages/shared/lib/providers/claude/claude-rtl-manager.ts`**
 
-Self-contained module handling all Claude.ai RTL functionality:
+Self-contained module handling all Claude.ai RTL functionality.
 
-DOM detection functions (internal):
-- `findSidePanelContent()` - Locates side panel by traversing from `.cursor-col-resize` anchor
-- `findChatInput()` - Finds chat input via `[data-testid="chat-input"]`
-- `findMainContent()` - Traverses up from chat input to sticky element, then selects previous sibling
+**Module Structure (follows standard provider pattern):**
 
-RTL application functions:
-- `applyClaudeRTL()` - Apply/remove RTL to side panel
-- `applyClaudeChatInputRTL()` - Apply/remove RTL to chat input
-- `applyClaudeMainContentRTL()` - Apply/remove RTL to main content
-- `injectKatexLTRStyle()` - Injects global CSS to force KaTeX math elements to always render in LTR
+1. **DOM Detection** (internal, not exported):
+   - `findSidePanelContent()` - Locates side panel by traversing from `.cursor-col-resize` anchor
+   - `findChatInput()` - Finds chat input via `[data-testid="chat-input"]`
+   - `findMainContent()` - Traverses up from chat input to sticky element, then selects previous sibling
 
-State management functions (exported):
-- `getCurrentClaudeRTLState()` - Get side panel RTL state from storage
-- `getCurrentClaudeChatInputRTLState()` - Get chat input RTL state from storage
-- `getCurrentClaudeMainContentRTLState()` - Get main content RTL state from storage
-- `toggleClaudeRTL()` - Toggle side panel RTL and save to storage
-- `toggleClaudeChatInputRTL()` - Toggle chat input RTL and save to storage
-- `toggleClaudeMainContentRTL()` - Toggle main content RTL and save to storage
-- `initClaudeRTLManager()` - Initialize MutationObserver to watch for URL and DOM changes
+2. **RTL Application** (internal, not exported):
+   - `applyClaudeRTL(enable: boolean)` - Apply/remove RTL to side panel
+   - `applyClaudeChatInputRTL(enable: boolean)` - Apply/remove RTL to chat input
+   - `applyClaudeMainContentRTL(enable: boolean)` - Apply/remove RTL to main content
+   - `injectKatexLTRStyle()` - Injects global CSS to force KaTeX math elements to always render in LTR
+
+3. **State Management** (EXPORTED - public API):
+   - `getCurrentClaudeRTLState()` - Get side panel RTL state from storage
+   - `getCurrentClaudeChatInputRTLState()` - Get chat input RTL state from storage
+   - `getCurrentClaudeMainContentRTLState()` - Get main content RTL state from storage
+   - `toggleClaudeRTL()` - Toggle side panel RTL and save to storage
+   - `toggleClaudeChatInputRTL()` - Toggle chat input RTL and save to storage
+   - `toggleClaudeMainContentRTL()` - Toggle main content RTL and save to storage
+
+4. **Initialization** (EXPORTED):
+   - `initClaudeRTLManager()` - Initialize MutationObserver to watch for URL and DOM changes, returns cleanup function
+
+**Pattern:** Only state management and initialization are exported. DOM detection and RTL application are implementation details.
 
 #### ChatGPT Provider
 
 **`packages/shared/lib/providers/chatgpt/chatgpt-rtl-manager.ts`**
 
-Self-contained module handling all ChatGPT RTL functionality:
+Self-contained module handling all ChatGPT RTL functionality.
 
-DOM detection functions:
-- `findChatGPTInput()` - Finds ChatGPT prompt textarea by ID
+**Module Structure (follows standard provider pattern):**
 
-RTL application functions:
-- `applyChatGPTInputRTL()` - Apply/remove RTL to ChatGPT input
-- `applyChatGPTKatexStyle()` - Injects/removes KaTeX fix CSS for RTL responses
+1. **DOM Detection** (internal, not exported):
+   - `findChatGPTInput()` - Finds ChatGPT prompt textarea by ID `#prompt-textarea`
 
-State management functions:
-- `getCurrentChatGPTKatexRTLState()` - Get KaTeX fix state from storage
-- `getCurrentChatGPTInputRTLState()` - Get input RTL state from storage
-- `toggleChatGPTKatexRTL()` - Toggle KaTeX fix and save to storage
-- `toggleChatGPTInputRTL()` - Toggle input RTL and save to storage
-- `initChatGPTRTLManager()` - Initialize MutationObserver to watch for URL and DOM changes
-- `reapplyChatGPTStyles()` - Reapply all styles (useful after settings transfer)
+2. **RTL Application** (internal, not exported):
+   - `applyChatGPTInputRTL(enable: boolean)` - Apply/remove RTL to ChatGPT input
+   - `applyChatGPTKatexStyle(enable: boolean)` - Injects/removes KaTeX fix CSS for RTL responses
+
+3. **State Management** (EXPORTED - public API):
+   - `getCurrentChatGPTKatexRTLState()` - Get KaTeX fix state from storage
+   - `getCurrentChatGPTInputRTLState()` - Get input RTL state from storage
+   - `toggleChatGPTKatexRTL()` - Toggle KaTeX fix and save to storage
+   - `toggleChatGPTInputRTL()` - Toggle input RTL and save to storage
+   - `reapplyChatGPTStyles()` - Reapply all styles (useful after settings transfer from "new" → UUID)
+
+4. **Initialization** (EXPORTED):
+   - `initChatGPTRTLManager()` - Initialize MutationObserver to watch for URL and DOM changes, returns cleanup function
+
+**Pattern:** Only state management and initialization are exported. DOM detection and RTL application are implementation details.
 
 #### RTL Initialization
 
 **`packages/shared/lib/utils/rtl-init.ts`**
 
-Thin orchestration layer for initialization and settings transfer:
-- Detects current provider using `getCurrentProvider()`
-- Delegates initialization to appropriate provider module
-- Handles settings transfer between "new" chat and actual chat UUID
-- Guards provider-specific operations with platform checks
+Thin orchestration layer for initialization and settings transfer. This module does NOT contain provider-specific logic - it only delegates to the appropriate provider module based on platform detection.
 
 Key functions:
 - `initRTLManager()` - Delegates to `initClaudeRTLManager()` or `initChatGPTRTLManager()` based on provider
-- `transferNewChatSettings()` - Transfers settings from "new" temp key to actual UUID (provider-aware)
-- `clearNewChatSettings()` - Clears temp settings from both providers
-- `reapplyChatGPTStyles()` - Reapplies ChatGPT styles after settings transfer
+- `transferNewChatSettings(newChatId)` - Transfers settings from "new" temp key to actual UUID (provider-aware)
+  - Reads "new" settings from both Claude and ChatGPT storage
+  - Writes them to the actual chat UUID
+  - Provider-specific: only transfers settings for current platform
+- `clearNewChatSettings()` - Clears "new" temp key from both provider storages
+- `reapplyChatGPTStyles()` - Reapplies ChatGPT styles after settings transfer (ChatGPT-specific workaround)
 
 ### Storage System
 
@@ -233,6 +255,40 @@ Global setting (not per-chat) for control panel position:
 - Persists user preference for where the sliding panel appears
 - Shared across all providers
 
+#### Storage Abstraction Layer
+
+All storages use a **reactive storage wrapper** built on chrome.storage API:
+
+```typescript
+const storage = createStorage<StateType>(
+  'storage-key',
+  defaultValue,
+  {
+    storageEnum: StorageEnum.Local,  // Local vs Session
+    liveUpdate: true,                 // Subscribe to changes
+  }
+);
+
+// Usage:
+const settings = await storage.get();
+await storage.set({ newSettings });
+const unsubscribe = storage.subscribe(() => { /* react to changes */ });
+```
+
+**Features:**
+- **Reactive**: `liveUpdate: true` watches `chrome.storage.onChanged` events
+- **Cached**: Maintains in-memory cache for fast reads (reduces chrome.storage API calls)
+- **Type-safe**: Full TypeScript support with generic types
+- **Subscribe pattern**: Multiple subscribers can listen to same storage changes
+- **Automatic cleanup**: Unsubscribe functions prevent memory leaks
+
+**How it works:**
+1. `createStorage()` registers listener on `chrome.storage.onChanged`
+2. When storage changes (from any source: popup, content-ui, or external), listener fires
+3. All subscribers are notified
+4. React components re-render with new state
+5. This enables **live synchronization** between UI components and storage without polling
+
 #### Storage Migration
 
 **`packages/storage/lib/migrations/storage-migration.ts`**
@@ -247,23 +303,27 @@ Migration process:
 5. Marks migration as complete with timestamp
 6. Preserves old storage for potential rollback
 
-See `/Users/anatoly/Developer/git/llm-gui-rtl/MIGRATION.md` for detailed migration documentation.
+See `MIGRATION.md` in the repository root for detailed migration documentation.
 
 ### UI Components
 
-The UI follows a component-based architecture with provider-specific tabs:
+The UI follows a component-based architecture with a provider dropdown selector:
 
-#### Tab Container
+#### Provider Container
 
 **`pages/content-ui/src/components/tabs/TabContainer.tsx`**
 
-Orchestrates tab switching and platform validation:
-- Automatically selects correct tab based on `currentPlatform` prop
-- Disables wrong tabs with visual indication (grayed out, disabled cursor)
-- Shows inline warning when user clicks wrong tab for current platform
+Orchestrates provider selection and platform validation:
+- Dropdown selector showing all available providers (Claude.ai, ChatGPT)
+- Automatically selects correct provider based on `currentPlatform` prop
+- All providers visible in dropdown, but only current platform is selectable
+- Disabled providers shown with grayed out text and `cursor: not-allowed`
+- Shows inline warning when user attempts to select wrong provider for current platform
 - Warning auto-dismisses after 2 seconds
+- Click-outside detection to close dropdown
+- Visual feedback: selected provider has blue checkmark icon
 
-#### Claude Tab
+#### Claude Provider Component
 
 **`pages/content-ui/src/components/tabs/ClaudeTab.tsx`**
 
@@ -272,9 +332,9 @@ Self-contained Claude.ai UI component:
 - Imports from Claude provider module: `toggleRTL`, `toggleChatInputRTL`, `toggleMainContentRTL`
 - Imports from Claude storage: `claudeChatStorage`
 - Subscribes to Claude storage changes for live updates
-- Only rendered when on Claude.ai
+- Only rendered when Claude.ai is selected
 
-#### ChatGPT Tab
+#### ChatGPT Provider Component
 
 **`pages/content-ui/src/components/tabs/ChatGPTTab.tsx`**
 
@@ -283,7 +343,7 @@ Self-contained ChatGPT UI component:
 - Imports from ChatGPT provider module: `toggleChatGPTKatexRTL`, `toggleChatGPTInputRTL`
 - Imports from ChatGPT storage: `chatgptChatStorage`
 - Subscribes to ChatGPT storage changes for live updates
-- Only rendered when on ChatGPT
+- Only rendered when ChatGPT is selected
 
 ### Key Patterns
 
@@ -293,10 +353,18 @@ When user is on a new/temporary page, settings are stored with key "new":
 - **Claude.ai**: `/new` or `/project/*` pages use "new" key
 - **ChatGPT**: Home page `/` uses "new" key
 
+**Settings Transfer Flow:**
+
 When user sends first message and URL changes to actual chat UUID:
-1. Settings are transferred from "new" to actual UUID
-2. "new" key is cleared for fresh start next time
-3. Each provider's settings are transferred independently
+1. `App.tsx` polls for URL changes every 500ms (via `setInterval`)
+2. When chat ID changes from "new" to actual UUID:
+   - `transferNewChatSettings(actualUUID)` copies "new" → UUID for current provider
+   - `reapplyChatGPTStyles()` immediately reapplies ChatGPT styles if on ChatGPT
+   - Settings are provider-isolated: only current platform's settings are transferred
+3. "new" key is cleared for fresh start next time
+4. Each provider's settings are transferred independently
+
+**Why polling?** MutationObserver doesn't catch URL changes reliably on all platforms. The 500ms polling ensures settings transfer happens quickly after the first message is sent.
 
 #### KaTeX LTR Preservation
 
@@ -309,7 +377,34 @@ Mathematical expressions are kept in LTR direction even when content is RTL:
 Each provider's manager uses MutationObserver to watch for:
 1. URL changes (navigation between chats or to/from new pages)
 2. DOM recreation (platforms dynamically rebuild elements)
-3. Element tracking prevents unnecessary reapplications (compares element references and current styles)
+
+**Element Tracking Pattern** (prevents infinite loops):
+
+```typescript
+let lastSidePanelElement: HTMLElement | null = null;
+
+const reapplySidePanel = async () => {
+  const currentElement = findSidePanelContent();
+
+  // Only reapply if:
+  // 1. Element reference changed (DOM was recreated)
+  // 2. Style doesn't match expected state
+  const needsReapply =
+    currentElement !== lastSidePanelElement ||
+    currentElement?.style.direction !== expectedDirection;
+
+  if (needsReapply && currentElement) {
+    lastSidePanelElement = currentElement;
+    applyClaudeRTL(savedRTLState);
+  }
+};
+```
+
+This pattern:
+- Tracks element references (not just existence)
+- Compares current style against expected state
+- Only applies styles when truly needed
+- Prevents infinite MutationObserver loops (where applying style triggers observer, which applies style again)
 
 #### Control Panel Visibility
 
@@ -319,12 +414,15 @@ Panel shows when `shouldShowPanel` is true:
 
 This prevents panel from appearing on landing pages or non-chat routes.
 
-#### Platform-Aware Tab System
+#### Platform-Aware Dropdown System
 
-- Tabs automatically select based on `currentPlatform` prop
-- Claude.ai tab disabled on ChatGPT, ChatGPT tab disabled on Claude.ai
-- Wrong tab click shows inline warning: "This tab is only available on [correct platform]"
+- Dropdown automatically selects correct provider based on `currentPlatform` prop
+- All providers visible in dropdown menu
+- Only current platform's provider is selectable (others are disabled)
+- Disabled providers have grayed text (50% opacity) and `cursor: not-allowed`
+- Attempting to select wrong provider shows inline warning: "This provider is only available on [correct platform]"
 - Warning auto-dismisses after 2 seconds
+- Dropdown closes automatically on selection or click-outside
 
 ### Monorepo Structure
 
@@ -364,10 +462,10 @@ Built on Turborepo with shared packages:
 - `public/` - Static assets (icons)
 
 **pages/**:
-- `content-ui/src/components/tabs/` - Provider-specific tab components
+- `content-ui/src/components/tabs/` - Provider-specific components
   - `ClaudeTab.tsx` - Self-contained Claude UI
   - `ChatGPTTab.tsx` - Self-contained ChatGPT UI
-  - `TabContainer.tsx` - Tab orchestration
+  - `TabContainer.tsx` - Provider dropdown orchestration
 
 ### Build System
 
@@ -612,7 +710,7 @@ export const GeminiTab = () => {
 };
 ```
 
-### Step 6: Update Tab Container
+### Step 6: Update Provider Container
 
 Update `pages/content-ui/src/components/tabs/TabContainer.tsx`:
 
@@ -626,9 +724,19 @@ interface TabContainerProps {
   initialTab: TabType;
 }
 
-// Add tab button for Gemini
-// Add platform validation
-// Render GeminiTab component
+// Add Gemini to PROVIDER_OPTIONS array:
+const PROVIDER_OPTIONS = [
+  { value: 'claude' as const, label: 'Claude.ai' },
+  { value: 'chatgpt' as const, label: 'ChatGPT' },
+  { value: 'gemini' as const, label: 'Gemini' },  // Add this
+];
+
+// Add Gemini rendering in Provider Content section:
+<div style={{ flex: 1, overflowY: 'auto' }}>
+  {activeTab === 'claude' && <ClaudeTab />}
+  {activeTab === 'chatgpt' && <ChatGPTTab />}
+  {activeTab === 'gemini' && <GeminiTab />}  {/* Add this */}
+</div>
 ```
 
 ### Step 7: Update Manifest Permissions

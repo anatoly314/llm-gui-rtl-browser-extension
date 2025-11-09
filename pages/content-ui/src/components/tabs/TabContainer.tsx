@@ -1,5 +1,6 @@
 import { ChatGPTTab } from './ChatGPTTab';
 import { ClaudeTab } from './ClaudeTab';
+import { ProviderDropdown } from '@extension/ui';
 import { useState } from 'react';
 
 type TabType = 'claude' | 'chatgpt';
@@ -9,50 +10,28 @@ interface TabContainerProps {
   initialTab: TabType;
 }
 
+const PROVIDER_OPTIONS = [
+  { value: 'claude', label: 'Claude.ai' },
+  { value: 'chatgpt', label: 'ChatGPT' },
+];
+
 export const TabContainer = ({ currentPlatform, initialTab }: TabContainerProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
-  const [showTabWarning, setShowTabWarning] = useState(false);
+  const [showPlatformWarning, setShowPlatformWarning] = useState(false);
 
-  const handleTabClick = (tab: TabType) => {
-    // Check if trying to click the wrong tab for current platform
-    if ((currentPlatform === 'claude' && tab === 'chatgpt') || (currentPlatform === 'chatgpt' && tab === 'claude')) {
-      setShowTabWarning(true);
-      setTimeout(() => setShowTabWarning(false), 2000);
-      return;
-    }
-    setActiveTab(tab);
+  const handleProviderChange = (provider: string) => {
+    setActiveTab(provider as TabType);
   };
 
-  const renderTabButton = (tab: TabType, label: string) => {
-    const isWrongPlatform =
-      (currentPlatform === 'claude' && tab === 'chatgpt') || (currentPlatform === 'chatgpt' && tab === 'claude');
-
-    return (
-      <button
-        onClick={() => handleTabClick(tab)}
-        style={{
-          flex: 1,
-          padding: '4px 8px',
-          border: 'none',
-          borderBottom: activeTab === tab ? '2px solid #3b82f6' : '2px solid transparent',
-          backgroundColor: activeTab === tab ? '#eff6ff' : 'transparent',
-          color: isWrongPlatform ? '#9ca3af' : activeTab === tab ? '#1e40af' : '#374151',
-          fontSize: '12px',
-          fontWeight: activeTab === tab ? '600' : '500',
-          cursor: isWrongPlatform ? 'not-allowed' : 'pointer',
-          transition: 'all 0.2s',
-          position: 'relative' as const,
-          opacity: isWrongPlatform ? 0.5 : 1,
-        }}>
-        {label}
-      </button>
-    );
+  const handleInvalidSelection = () => {
+    setShowPlatformWarning(true);
+    setTimeout(() => setShowPlatformWarning(false), 2000);
   };
 
   return (
     <>
-      {/* Tab Warning Notification */}
-      {showTabWarning && (
+      {/* Platform Warning Notification */}
+      {showPlatformWarning && (
         <div
           style={{
             marginTop: '8px',
@@ -65,24 +44,20 @@ export const TabContainer = ({ currentPlatform, initialTab }: TabContainerProps)
             fontWeight: '500',
             animation: 'fadeIn 0.2s ease-in',
           }}>
-          This tab is only available on {currentPlatform === 'claude' ? 'ChatGPT' : 'Claude.ai'}
+          This provider is only available on {currentPlatform === 'claude' ? 'Claude.ai' : 'ChatGPT'}
         </div>
       )}
 
-      {/* Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          borderBottom: '1px solid #e5e7eb',
-          marginTop: '12px',
-          paddingTop: '12px',
-          borderTop: '1px solid #e5e7eb',
-        }}>
-        {renderTabButton('claude', 'Claude.ai')}
-        {renderTabButton('chatgpt', 'ChatGPT')}
-      </div>
+      {/* Provider Dropdown */}
+      <ProviderDropdown
+        options={PROVIDER_OPTIONS}
+        value={activeTab}
+        currentPlatform={currentPlatform}
+        onChange={handleProviderChange}
+        onInvalidSelection={handleInvalidSelection}
+      />
 
-      {/* Tab Content */}
+      {/* Provider Content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {activeTab === 'claude' && <ClaudeTab />}
         {activeTab === 'chatgpt' && <ChatGPTTab />}
