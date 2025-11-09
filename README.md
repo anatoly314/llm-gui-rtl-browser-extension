@@ -3,7 +3,7 @@
 
   # AI Chat RTL Support
 
-  A browser extension that adds comprehensive right-to-left (RTL) text direction support to AI chat interfaces. Supports Claude.ai and ChatGPT. Perfect for users who work with RTL languages like Arabic, Hebrew, Persian, and Urdu.
+  A browser extension that adds comprehensive right-to-left (RTL) text direction support to AI chat interfaces. Supports Claude.ai, ChatGPT, and NotebookLM. Perfect for users who work with RTL languages like Arabic, Hebrew, Persian, and Urdu.
 </div>
 
 ## ✨ Features
@@ -22,8 +22,13 @@
 - **KaTeX Fix**: Force mathematical expressions to display correctly in RTL responses
 - **Smart Detection**: Automatically detects ChatGPT conversations and applies saved settings
 
+### NotebookLM
+- **Chat Panel RTL**: Toggle RTL direction for the entire chat panel interface
+- **KaTeX Fix**: Force mathematical expressions to display correctly in RTL responses
+- **Notebook Detection**: Automatically detects NotebookLM notebooks and applies saved settings
+
 ### General
-- **Tabbed Interface**: Platform-specific controls with automatic tab selection
+- **Dropdown Interface**: Platform-specific controls with automatic provider selection
 - **Per-Chat Settings**: RTL preferences are saved per conversation with automatic UUID storage
 - **Modern UI**: Beautiful toggle switches with smooth animations
 - **Persistent Storage**: Settings are automatically saved and restored across sessions
@@ -64,13 +69,23 @@
 
 1. Navigate to [ChatGPT](https://chatgpt.com)
 2. Hover over the blue trigger bar at the top/right/bottom/left of the screen
-3. The control panel will slide out with the ChatGPT tab selected
+3. The control panel will slide out with the ChatGPT provider selected
 4. Configure:
    - Input direction (LTR/RTL) - works on home page and in conversations
    - Fix KaTeX Math Expressions - force math to display correctly in RTL responses
 5. Your settings are automatically saved per chat
 
-Note: Tabs are platform-specific - you can only use the Claude.ai tab on Claude.ai and the ChatGPT tab on ChatGPT.
+### On NotebookLM
+
+1. Navigate to [NotebookLM](https://notebooklm.google.com)
+2. Hover over the blue trigger bar at the top/right/bottom/left of the screen
+3. The control panel will slide out with the NotebookLM provider selected
+4. Configure:
+   - Chat panel direction (LTR/RTL) - controls the entire `<chat-panel>` element
+   - Fix KaTeX Math Expressions - force math to display correctly in RTL responses
+5. Your settings are automatically saved per notebook
+
+Note: The provider dropdown shows all available platforms, but you can only select the provider matching your current platform.
 
 ## 🏗️ Architecture
 
@@ -87,9 +102,9 @@ This extension is a **content-script-only** extension with **NO background servi
 
 The extension uses a **provider-based architecture** for maximum flexibility:
 
-- **Modular Providers**: Each AI platform (Claude, ChatGPT) has its own isolated module
+- **Modular Providers**: Each AI platform (Claude, ChatGPT, NotebookLM) has its own isolated module
 - **Separate Storage**: Provider-specific storage namespaces prevent data conflicts
-- **Independent UI Components**: Self-contained tab components for each provider
+- **Independent UI Components**: Self-contained components for each provider
 - **Easy Extensibility**: Adding new AI platforms (Gemini, Perplexity, etc.) requires no changes to existing code
 
 For detailed architecture documentation, see [CLAUDE.md](CLAUDE.md).
