@@ -1,18 +1,20 @@
 import { ChatGPTTab } from './ChatGPTTab';
 import { ClaudeTab } from './ClaudeTab';
+import { NotebookLMTab } from './NotebookLMTab';
 import { ProviderDropdown } from '@extension/ui';
 import { useState } from 'react';
 
-type TabType = 'claude' | 'chatgpt';
+type TabType = 'claude' | 'chatgpt' | 'notebooklm';
 
 interface TabContainerProps {
-  currentPlatform: 'claude' | 'chatgpt';
+  currentPlatform: 'claude' | 'chatgpt' | 'notebooklm';
   initialTab: TabType;
 }
 
 const PROVIDER_OPTIONS = [
   { value: 'claude', label: 'Claude.ai' },
   { value: 'chatgpt', label: 'ChatGPT' },
+  { value: 'notebooklm', label: 'NotebookLM' },
 ];
 
 export const TabContainer = ({ currentPlatform, initialTab }: TabContainerProps) => {
@@ -44,7 +46,8 @@ export const TabContainer = ({ currentPlatform, initialTab }: TabContainerProps)
             fontWeight: '500',
             animation: 'fadeIn 0.2s ease-in',
           }}>
-          This provider is only available on {currentPlatform === 'claude' ? 'Claude.ai' : 'ChatGPT'}
+          This provider is only available on{' '}
+          {currentPlatform === 'claude' ? 'Claude.ai' : currentPlatform === 'chatgpt' ? 'ChatGPT' : 'NotebookLM'}
         </div>
       )}
 
@@ -61,6 +64,7 @@ export const TabContainer = ({ currentPlatform, initialTab }: TabContainerProps)
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {activeTab === 'claude' && <ClaudeTab />}
         {activeTab === 'chatgpt' && <ChatGPTTab />}
+        {activeTab === 'notebooklm' && <NotebookLMTab />}
       </div>
     </>
   );

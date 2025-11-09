@@ -12,18 +12,18 @@ import { Toast } from '@extension/ui';
 import { useState, useEffect } from 'react';
 import type { PositionType } from '@extension/storage';
 
-type TabType = 'claude' | 'chatgpt';
+type TabType = 'claude' | 'chatgpt' | 'notebooklm';
 
 export default function App() {
   const [isHovered, setIsHovered] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('claude');
   const [showToast, setShowToast] = useState(false);
   const [shouldShowPanel, setShouldShowPanel] = useState(false);
-  const [currentPlatform, setCurrentPlatform] = useState<'claude' | 'chatgpt'>('claude');
+  const [currentPlatform, setCurrentPlatform] = useState<'claude' | 'chatgpt' | 'notebooklm'>('claude');
   const storageData = useStorage(rtlPositionStorage);
   const position = storageData?.position || 'top';
 
-  // Check if panel should be visible (only on /new, /project/, /c/, or when chatId exists)
+  // Check if panel should be visible (only on /new, /project/, /c/, /notebook/, or when chatId exists)
   const checkPanelVisibility = () => {
     const path = window.location.pathname;
     const hostname = window.location.hostname;
@@ -39,7 +39,13 @@ export default function App() {
     const isChatGPTConversation = isChatGPT && path.startsWith('/c/');
     const isChatGPTHome = isChatGPT && path === '/';
 
-    setShouldShowPanel(isNewPage || isProjectPage || hasChatId || isChatGPTConversation || isChatGPTHome);
+    // NotebookLM checks
+    const isNotebookLM = hostname === 'notebooklm.google.com';
+    const isNotebookLMNotebook = isNotebookLM && path.startsWith('/notebook/');
+
+    setShouldShowPanel(
+      isNewPage || isProjectPage || hasChatId || isChatGPTConversation || isChatGPTHome || isNotebookLMNotebook,
+    );
   };
 
   // Auto-select tab based on current website
@@ -48,6 +54,9 @@ export default function App() {
     if (hostname === 'chatgpt.com' || hostname === 'chat.openai.com') {
       setActiveTab('chatgpt');
       setCurrentPlatform('chatgpt');
+    } else if (hostname === 'notebooklm.google.com') {
+      setActiveTab('notebooklm');
+      setCurrentPlatform('notebooklm');
     } else if (hostname === 'claude.ai') {
       setActiveTab('claude');
       setCurrentPlatform('claude');

@@ -3,7 +3,7 @@
  * Determines which AI provider is currently active
  */
 
-export type AIProvider = 'claude' | 'chatgpt' | 'unknown';
+export type AIProvider = 'claude' | 'chatgpt' | 'notebooklm' | 'unknown';
 
 /**
  * Detects if current site is Claude.ai
@@ -22,10 +22,19 @@ export const isChatGPT = (): boolean => {
 };
 
 /**
+ * Detects if current site is NotebookLM
+ */
+export const isNotebookLM = (): boolean => {
+  const hostname = window.location.hostname;
+  return hostname === 'notebooklm.google.com';
+};
+
+/**
  * Gets the current active AI provider
  */
 export const getCurrentProvider = (): AIProvider => {
   if (isClaude()) return 'claude';
   if (isChatGPT()) return 'chatgpt';
+  if (isNotebookLM()) return 'notebooklm';
   return 'unknown';
 };

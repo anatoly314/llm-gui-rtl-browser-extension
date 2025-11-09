@@ -12,5 +12,12 @@ export type { ClaudeSettings, ClaudeStorageState, ClaudeStorageType } from './pr
 export { chatgptChatStorage } from './providers/chatgpt-storage.js';
 export type { ChatGPTSettings, ChatGPTStorageState, ChatGPTStorageType } from './providers/chatgpt-storage.js';
 
+export { notebooklmChatStorage } from './providers/notebooklm-storage.js';
+export type {
+  NotebookLMSettings,
+  NotebookLMStorageState,
+  NotebookLMStorageType,
+} from './providers/notebooklm-storage.js';
+
 // Migration utilities
 export { migrateStorage, isMigrationComplete, resetMigration } from './migrations/storage-migration.js';

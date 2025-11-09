@@ -3,9 +3,15 @@
  * Orchestrates provider-specific RTL manager initialization and settings transfer
  */
 
-import { initChatGPTRTLManager } from '../providers/chatgpt/chatgpt-rtl-manager.js';
-import { initClaudeRTLManager } from '../providers/claude/claude-rtl-manager.js';
-import { getCurrentProvider, isClaude, isChatGPT } from '../providers/provider-detector.js';
+import {
+  initClaudeRTLManager,
+  initNotebookLMRTLManager,
+  initChatGPTRTLManager,
+  getCurrentProvider,
+  isClaude,
+  isChatGPT,
+  isNotebookLM,
+} from '../providers/index.js';
 
 /**
  * Initializes RTL manager - delegates to provider-specific initialization
@@ -21,6 +27,10 @@ export const initRTLManager = (): (() => void) => {
     return initChatGPTRTLManager();
   }
 
+  if (provider === 'notebooklm') {
+    return initNotebookLMRTLManager();
+  }
+
   // Unknown provider - return no-op cleanup function
   console.debug('[RTL Init] Unknown provider, no RTL manager initialized');
   return () => {};
@@ -31,10 +41,11 @@ export const initRTLManager = (): (() => void) => {
  */
 export const clearNewChatSettings = async (): Promise<void> => {
   try {
-    // Clear from both storages to be safe
-    const { claudeChatStorage, chatgptChatStorage } = await import('@extension/storage');
+    // Clear from all storages to be safe
+    const { claudeChatStorage, chatgptChatStorage, notebooklmChatStorage } = await import('@extension/storage');
     await claudeChatStorage.resetChatSettings('new');
     await chatgptChatStorage.resetChatSettings('new');
+    await notebooklmChatStorage.resetChatSettings('new');
   } catch (error) {
     console.error('[RTL Init] Error clearing new chat settings:', error);
   }
@@ -47,7 +58,7 @@ export const transferNewChatSettings = async (newChatId: string): Promise<void> 
   if (!newChatId || newChatId === 'new') return;
 
   try {
-    const { claudeChatStorage, chatgptChatStorage } = await import('@extension/storage');
+    const { claudeChatStorage, chatgptChatStorage, notebooklmChatStorage } = await import('@extension/storage');
 
     // Transfer Claude settings if on Claude.ai
     if (isClaude()) {
@@ -74,6 +85,20 @@ export const transferNewChatSettings = async (newChatId: string): Promise<void> 
 
         // Clear the "new" temp key so next time home page starts fresh
         await chatgptChatStorage.resetChatSettings('new');
+      }
+    }
+
+    // Transfer NotebookLM settings if on NotebookLM
+    if (isNotebookLM()) {
+      const tempNotebookLMSettings = await notebooklmChatStorage.getChatSettings('new');
+
+      // Only transfer if temp settings have non-default values
+      if (tempNotebookLMSettings.isKatexRTL || tempNotebookLMSettings.isChatPanelRTL) {
+        console.debug('[RTL Init] Transferring NotebookLM settings from "new" to', newChatId);
+        await notebooklmChatStorage.setChatSettings(newChatId, tempNotebookLMSettings);
+
+        // Clear the "new" temp key so next time starts fresh
+        await notebooklmChatStorage.resetChatSettings('new');
       }
     }
   } catch (error) {
