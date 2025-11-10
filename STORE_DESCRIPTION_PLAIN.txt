@@ -1,0 +1,97 @@
+AI Chat RTL Support - Multi-Platform RTL Solution
+
+AI Chat RTL Support adds comprehensive right-to-left (RTL) text direction support to AI chat interfaces. Now supporting Claude.ai, ChatGPT, and NotebookLM with platform-specific features. Perfect for users who work with RTL languages like Arabic, Hebrew, Persian, and Urdu.
+
+✨ KEY FEATURES
+
+🎯 Multi-Platform Support
+  • Claude.ai - Full RTL control with three independent toggles
+  • ChatGPT - RTL input support + KaTeX math rendering fix
+  • NotebookLM - Chat panel RTL + math expression fixes
+  • Smart Platform Detection - Automatically shows relevant controls based on current site
+
+🔧 Claude.ai Features
+  • Independent RTL Controls - Toggle RTL separately for:
+    - Chat input field
+    - Main conversation content
+    - Side panel navigation
+  • Project & Team Support - Works on /new, /project/*, and team workspaces
+  • KaTeX Preservation - Math formulas stay LTR for proper rendering
+
+💬 ChatGPT Features
+  • Chat Input RTL - Toggle RTL direction for message composition
+  • KaTeX Fix - Solves ChatGPT's RTL math rendering issues
+  • Home Page Support - Settings available from ChatGPT homepage
+  • Conversation Persistence - Settings saved per chat thread
+
+📚 NotebookLM Features
+  • Chat Panel RTL - Toggle RTL direction for the entire chat interface
+  • KaTeX Fix - Mathematical expressions display correctly in RTL mode
+  • Notebook Detection - Automatically detects and applies settings per notebook
+  • No Line Wrapping - Math expressions stay on single line for clarity
+
+🎨 Enhanced UI
+  • Provider Dropdown - Scalable interface supporting unlimited platforms
+  • Platform-Aware Selection - Only current platform's settings are accessible
+  • Configurable Panel Position - Choose top, right, bottom, or left placement
+  • Global Position Control - Panel position setting applies across all platforms
+  • Smooth Animations - Beautiful slide-out panel with hover activation
+
+💾 Smart Storage
+  • Per-Conversation Settings - Each chat/notebook remembers its RTL preferences
+  • Automatic Settings Transfer - Settings carry over when chat gets UUID
+  • Cross-Session Persistence - Settings restored when you return
+  • Provider-Specific Storage - Isolated storage prevents cross-platform conflicts
+
+🚀 HOW TO USE
+
+1. Navigate to Claude.ai, ChatGPT, or NotebookLM
+2. Hover over the blue trigger bar (position customizable)
+3. The control panel slides out with platform-specific options
+4. Select your platform from the dropdown (auto-detected)
+5. Toggle RTL settings as needed for your workflow
+6. Settings automatically save per conversation/notebook
+
+📱 PLATFORM SUPPORT
+
+Full Support:
+  • Claude.ai - Complete RTL control suite
+  • ChatGPT (chatgpt.com) - Input RTL + math rendering fix
+  • NotebookLM (notebooklm.google.com) - Chat panel RTL + math fixes
+
+Coming Soon:
+  • Other AI platforms (open to suggestions!)
+
+💡 PERFECT FOR
+  • Writers and students using RTL languages in AI chats
+  • Developers working with mixed LTR/RTL content
+  • Researchers using mathematical formulas in RTL contexts
+  • Anyone switching between English and RTL languages
+  • Teams collaborating in multilingual environments
+  • NotebookLM users organizing research in RTL languages
+
+🆕 WHAT'S NEW IN v0.10.0
+  ✅ NotebookLM Support Added - Full integration with chat panel RTL and math fixes
+  ✅ Provider Dropdown Interface - Replaced tabs with scalable dropdown for unlimited platforms
+  ✅ Enhanced KaTeX Rendering - Math expressions no longer wrap across lines
+  ✅ Improved Architecture - Complete provider isolation for better maintainability
+  ✅ Better Documentation - Updated README and popup with all platform information
+
+🔒 PRIVACY FIRST
+
+This extension does NOT collect, store, or transmit any personal data. All settings are stored locally in your browser using Chrome's secure storage API. No analytics, no tracking, no external servers.
+
+🛠️ OPEN SOURCE
+
+Want RTL support for other AI platforms? This is an open-source project and we welcome contributions!
+
+GitHub: https://github.com/anatoly314/llm-gui-rtl-browser-extension
+
+📧 SUPPORT
+
+Have questions, feedback, or platform requests?
+  • Open an issue on GitHub
+  • Visit anatoly.dev
+  • Star the repo to show support!
+
+Created with ❤️ by Anatoly Tarnavsky
